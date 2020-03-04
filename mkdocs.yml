@@ -1,0 +1,7 @@
+docs_dir: docs
+nav:
+- Home: README.md
+- functions: MODULES.md
+site_dir: _build/site
+site_name: Swarm S3 workers and helpers Documentation
+theme: readthedocs

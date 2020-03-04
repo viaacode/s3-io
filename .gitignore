@@ -1,0 +1,10 @@
+.spyproject/
+config.yml
+*/config.yml
+_build/
+*.egg-info
+dist
+dist/*
+*/__pycache__
+__pycache__
+s3io/known_hosts

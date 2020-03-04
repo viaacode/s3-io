@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jan 8 09:07:08 2018
+
+@author: tina
+"""
+
+from setuptools import setup
+
+setup(name='s3_io',
+      version='0.1',
+      description='VIAA S3 Events',
+      long_description='Publiseh s3 event to rabbitmq.',
+      classifiers=[
+        'Development Status :: 0.1-rc1',
+        'Intended Audience :: Developers',
+        'License :: MIT 2019 VIAA',
+        'Programming Language :: Python :: 3.5',
+        'Topic :: S3',
+      ],
+      keywords='S3 events',
+      author='Tina Cochet',
+      author_email='tina.cochet@viaa.be',
+      license='MIT 2019 VIAA',
+      packages=['s3io'],
+      package_dir={'s3io':'s3io'}, # the one line where all the magic happens
+        package_data={
+        's3io': ['_build/*'],
+      },
+      install_requires=[
+              'pika==1.1.0',
+              'requests',
+              'boto3==1.10.4',
+              'boto3-python3==1.9.139',
+              'python_logging_rabbitmq==2.0.0',
+              'urllib3==1.24.3',
+              'retry==0.9.2',
+              'celery==4.3.0',
+              'tqdm==4.36.1',
+              'pydoc-markdown==2.0.5',
+              'viaa-chassis @git+https://github.com/viaacode/chassis.py.git@master#egg=viaa-chasis-0.0.4',
+      ],
+              
+      # scripts=['./scripts/s3_io-daemon',
+      #          ],
+      entry_points={
+         'console_scripts': ['s3io-worker=s3io.s3io_worker:__main__'],
+    },
+      include_package_data=True,
+      zip_safe=False)
