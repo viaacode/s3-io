@@ -5,7 +5,7 @@
 
 ## s3-events
 ```console
-#cli: s3-events
+#cli: s3-worker
 ```
 Description:
 
