@@ -1,6 +1,5 @@
-# s3_events.s3_events
+# s3io
 
-Created on Thu Dec 19 10:05:23 2019
 
 @author: tina
 
@@ -37,48 +36,10 @@ Description:
 - consult file config.dist for info and rename 
 
 ### Docs
-```pydocmd
-pydocmd build
+```todo
 ```
 Description:
 
 - Builds the documentation
 
 
-## Makefile info
-```
-#cli: make all
-```
-Description:
-
-- Installs package and the documentation
-
-```
-#cli: make docs
-```
-Description:
-
-- build and serve documentation
-
-```
-#cli: make clean
-```
-Description:
-
-- cleans cwd and uninstalls package
-
-### System Daemon
-```pydocmd
-#cli: systemctl start s3-events
-```
-Description:
-
-- Systemd daemon 
-
-## Tips
-```
-pydocmd serve
-```
-Description:
-
-- will server the documentation
