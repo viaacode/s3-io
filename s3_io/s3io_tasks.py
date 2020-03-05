@@ -10,11 +10,11 @@ from viaa.configuration import ConfigParser
 from celery import Celery
 from kombu import Exchange, Queue
 import configparser
-from s3io.s3io_tools import SwarmS3Client, SwarmIo 
-import s3io.celeryconfig as celeryconfig
+from s3_io.s3io_tools import SwarmS3Client, SwarmIo 
+import s3_io.celeryconfig as celeryconfig
 app = Celery('s3io',)
 app.config_from_object(celeryconfig)
-from s3io.remote_curl import remote_fetch
+from s3_io.remote_curl import remote_fetch
 
 config = ConfigParser()
 logger = logging.get_logger('s3io', config)

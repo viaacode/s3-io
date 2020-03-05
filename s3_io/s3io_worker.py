@@ -16,9 +16,9 @@ Created on Mon Sep 23 11:58:05 2019
 """
 #ELASTIC_APM_USE_STRUCTLOG=True
 
-from s3io.s3io_tasks import app
+from s3_io.s3io_tasks import app
 import configparser
-from s3io.event_consumer import __main__ as Consume 
+from s3_io.event_consumer import __main__ as Consume 
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
 import threading

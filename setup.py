@@ -23,8 +23,8 @@ setup(name='s3_io',
       author='Tina Cochet',
       author_email='tina.cochet@viaa.be',
       license='MIT 2019 VIAA',
-      packages=['s3io'],
-      package_dir={'s3io':'s3io'}, # the one line where all the magic happens
+      packages=['s3_io'],
+      package_dir={'s3_io':'s3_io'}, # the one line where all the magic happens
         package_data={
         's3io': ['_build/*'],
       },
@@ -45,7 +45,8 @@ setup(name='s3_io',
       # scripts=['./scripts/s3_io-daemon',
       #          ],
       entry_points={
-         'console_scripts': ['s3io-worker=s3io.s3io_worker:__main__'],
+         'console_scripts': ['s3io-worker=s3_io.s3io_worker:__main__',
+                             's3io-consumer=s3_io.event_consumer:__main__']
     },
       include_package_data=True,
       zip_safe=False)

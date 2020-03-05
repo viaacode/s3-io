@@ -1,7 +1,9 @@
 docs_dir: docs
-nav:
-- Home: README.md
+pages:
 - functions: MODULES.md
+- Readme: README.md
+
 site_dir: _build/site
-site_name: Swarm S3 workers and helpers Documentation
+site_name: Swarm S3 IO tools
 theme: readthedocs
+

@@ -77,7 +77,9 @@ def buildRange(value, numsplits):
 
 @timeit
 def download_in_parts(url=None, dest_path=None,splitBy=4):
-    '''Download url in parts and join (locally)'''
+    """
+    Download url in parts and join (locally)
+    """
     if not url:
         logger.error ("Please Enter some url to begin download.")
         raise OSError
@@ -138,7 +140,9 @@ def download_in_parts(url=None, dest_path=None,splitBy=4):
               fp.write(out_data)
 
 class RemoteCurl():
-    '''run curl to download a file with paramiko ssh''' 
+    """
+    run curl to download a file with paramiko ssh
+    """
     def __init__(self,
                  url,
                  dest_path,
@@ -249,7 +253,7 @@ class RemoteCurl():
 
 
 class RemoteAssembleParts():
-    '''Put the shit togetter''' 
+    """Put the shit togetter""" 
     def __init__(self,
                  tmp_dir='/tmp',
                  dest_path=None,
@@ -330,7 +334,7 @@ def remote_fetch(url,dest_path, splitBy=8,
                  host=None,
                  user=None,
                  request_id=None):
-    '''Description:
+    """Description:
          
          - download frorm url in parts and assemble to destpath
        
@@ -339,7 +343,7 @@ def remote_fetch(url,dest_path, splitBy=8,
           - host: remote hoistname
           - user: needs to have ssh key on remote host working!!
           
-    '''
+    """
     if not url:
         logger.error("Please Enter some url to begin download.")
         raise IOError

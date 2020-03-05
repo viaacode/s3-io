@@ -38,10 +38,10 @@ debug_msg={"service_type": "celery",
         }
 
 def validate_input(msg):
-    '''Description:
+    """Description:
          
          - Basic validation of a message
-    ''' 
+    """ 
     request_id = msg["x-meemoo-request-id"]
     key = msg['source']['object']['key']
     log_fields={'x-meemoo-request-id':request_id}
@@ -57,7 +57,7 @@ def _file(msg):
 
 
 def process(msg):
-    '''The processing:
+    """The processing:
          
           - starts a celery job
      Args:
@@ -67,7 +67,7 @@ def process(msg):
      Returns:
           
           - task_id: string
-     ''' 
+     """ 
     if validate_input(msg):
         key = msg['source']['object']['key']        
         request_id = msg["x-meemoo-request-id"]
