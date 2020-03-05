@@ -2,11 +2,17 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jan 10 15:40:19 2020
+    Description:
+
+         - queue : hardcodes atm to : s3_to_remotefs
+
+    Args:
+         - body: json
+         - headers: "x-meemoo-request-id" required!
 
 @author: tina
 """
 from sys import exit
-
 import pika
 import json
 import configparser
@@ -19,7 +25,6 @@ config_ = configparser.ConfigParser()
 config_.read('/etc/viaa-workers/config.ini')
 swarmurl = config_['castor']['swarmurl']
 logger = logging.get_logger('s3io', config)
-
 
 
 @retry(pika.exceptions.AMQPConnectionError,

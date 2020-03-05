@@ -25,7 +25,7 @@ Gdownload file with curl over ssh with paramiko
 
 ## RemoteAssembleParts
 
-[[find in source code]](../../s3_io/remote_curl.py#L262)
+[[find in source code]](../../s3_io/remote_curl.py#L260)
 
 ```python
 class RemoteAssembleParts():
@@ -42,7 +42,7 @@ Put the shit togetter
 
 ### RemoteAssembleParts().\_\_call\_\_
 
-[[find in source code]](../../s3_io/remote_curl.py#L341)
+[[find in source code]](../../s3_io/remote_curl.py#L339)
 
 ```python
 def __call__():
@@ -52,7 +52,7 @@ Join the files
 
 ## RemoteCurl
 
-[[find in source code]](../../s3_io/remote_curl.py#L134)
+[[find in source code]](../../s3_io/remote_curl.py#L132)
 
 ```python
 class RemoteCurl():
@@ -80,7 +80,7 @@ class RemoteCurl():
 
 ### RemoteCurl().\_\_call\_\_
 
-[[find in source code]](../../s3_io/remote_curl.py#L257)
+[[find in source code]](../../s3_io/remote_curl.py#L255)
 
 ```python
 def __call__():
@@ -90,7 +90,7 @@ Run remote_get
 
 ## buildRange
 
-[[find in source code]](../../s3_io/remote_curl.py#L56)
+[[find in source code]](../../s3_io/remote_curl.py#L54)
 
 ```python
 def buildRange(value, numsplits):
@@ -98,7 +98,7 @@ def buildRange(value, numsplits):
 
 ## chunks
 
-[[find in source code]](../../s3_io/remote_curl.py#L50)
+[[find in source code]](../../s3_io/remote_curl.py#L48)
 
 ```python
 def chunks(lst, n):
@@ -108,7 +108,7 @@ Yield successive n-sized chunks from lst.
 
 ## decorator
 
-[[find in source code]](../../s3_io/remote_curl.py#L30)
+[[find in source code]](../../s3_io/remote_curl.py#L28)
 
 ```python
 def decorator(d):
@@ -118,7 +118,7 @@ Make function d a decorator: d wraps a function fn.
 
 ## download_in_parts
 
-[[find in source code]](../../s3_io/remote_curl.py#L70)
+[[find in source code]](../../s3_io/remote_curl.py#L68)
 
 ```python
 @timeit
@@ -133,7 +133,7 @@ Download url in parts and join (locally)
 
 ## remote_fetch
 
-[[find in source code]](../../s3_io/remote_curl.py#L347)
+[[find in source code]](../../s3_io/remote_curl.py#L345)
 
 ```python
 @timeit
@@ -155,7 +155,7 @@ Description:
 
 ## remote_ffprobe
 
-[[find in source code]](../../s3_io/remote_curl.py#L468)
+[[find in source code]](../../s3_io/remote_curl.py#L466)
 
 ```python
 def remote_ffprobe(mediafile, host=None, user=None):
@@ -165,7 +165,7 @@ Runs ffprobe on remote host
 
 ## remote_get
 
-[[find in source code]](../../s3_io/remote_curl.py#L414)
+[[find in source code]](../../s3_io/remote_curl.py#L412)
 
 ```python
 def remote_get(url, dest_path):
@@ -175,7 +175,7 @@ Downlod url to dest_path, using paramiko and curl
 
 ## timeit
 
-[[find in source code]](../../s3_io/remote_curl.py#L38)
+[[find in source code]](../../s3_io/remote_curl.py#L36)
 
 ```python
 @decorator

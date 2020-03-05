@@ -10,7 +10,7 @@ Remote curl space checker:
 """
 import os
 import threading
-from pymemcache.client import base
+# from pymemcache.client import base
 from functools import update_wrapper
 import paramiko
 import time
@@ -18,12 +18,10 @@ import requests
 import json
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
-from requests.auth import HTTPBasicAuth
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+# from urllib3.util.retry import Retry
 from json import JSONDecodeError
 
-config=ConfigParser()
+config = ConfigParser()
 logger = logging.get_logger('s3io', config)
 
 
@@ -68,29 +66,29 @@ def buildRange(value, numsplits):
 
 
 @timeit
-def download_in_parts(url=None, dest_path=None,splitBy=4):
+def download_in_parts(url=None, dest_path=None, splitBy=4):
     """
     Download url in parts and join (locally)
     """
     if not url:
-        logger.error ("Please Enter some url to begin download.")
+        logger.error("Please Enter some url to begin download.")
         raise OSError
 
     sizeInBytes = requests.head(
-            url,
-            allow_redirects=True,
-            headers={'host':'s3-qas.do.viaa.be',
-                     'Accept-Encoding': 'identity'}).headers.get(
-                     'content-length', None)
+         url,
+         allow_redirects=True,
+         headers = {'host': 's3-qas.do.viaa.be',
+                    'Accept-Encoding': 'identity'}).headers.get(
+                    'content-length', None)
     logger.debug("%s bytes to download. from url: %s",
-           str(sizeInBytes),url)
+           str(sizeInBytes), url)
     if not sizeInBytes:
-        logger.error( "Size cannot be determined.")
+        logger.error("Size cannot be determined.")
     ranges = buildRange(int(sizeInBytes), splitBy)
 
     def downloadChunk(idx, irange):
 
-        headers= {"host":"s3-qas.do.viaa.be",
+        headers= {"host": "s3-qas.do.viaa.be",
                   "Range":'bytes={}'.format(irange)}
         logger.info(str(headers))
         req = requests.get(url,
@@ -108,7 +106,7 @@ def download_in_parts(url=None, dest_path=None,splitBy=4):
             args=(idx, irange),
 
         )
-        for idx,irange in enumerate(ranges)
+        for idx, irange in enumerate(ranges)
         ]
 
     # start threads, let run in parallel, wait for all to finish
@@ -161,7 +159,7 @@ class RemoteCurl():
                        "RESULT": "STARTED"}
         if host is None:
             self.host = config.app_cfg['RemoteCurl']['host']
-        self.user = user,
+        self.user = user
         if user is None:
             self.user = config.app_cfg['RemoteCurl']['user']
         self.url = url
@@ -469,9 +467,9 @@ def remote_ffprobe(mediafile, host=None, user=None):
     """Runs ffprobe on remote host"""
     if host == None:
         host = config.app_cfg['RemoteCurl']['host'],
-        host=host[0]
+        host = host[0]
     if user == None:
-        user=config.app_cfg['RemoteCurl']['user']
+        user = config.app_cfg['RemoteCurl']['user']
     k = paramiko.RSAKey.from_private_key_file(
             config.app_cfg['RemoteCurl']['private_key_path'])
     if k:
@@ -482,12 +480,11 @@ def remote_ffprobe(mediafile, host=None, user=None):
                               username=user,
                               )
         cmd= """ffprobe -show_format -show_streams -print_format json {} """.format(mediafile)
-       # cmd="""ls  """
         try:
             _stdin, stdout, stderr = remote_client.exec_command(cmd)
 
             out = stdout.readlines()
-            o = list(map(lambda x:x.strip(), out))
+            o = list(map(lambda x: x.strip(), out))
             o = ''.join(out)
             p = json.loads(o)
             p['RESULT'] = 'SUCCESS'
@@ -498,8 +495,6 @@ def remote_ffprobe(mediafile, host=None, user=None):
                         fields=p)
 
             return o
-
-
         except JSONDecodeError:
             out = stderr.readlines()
             o = ''.join(out)
@@ -524,107 +519,4 @@ def remote_ffprobe(mediafile, host=None, user=None):
             remote_client.close()
             logger.error(str(out), exc_info=True)
             raise IOError
-
-
-
-# def get_token(self):
-#     self.token_requested = False
-#     if self.env == 'production':
-#         url = 'https://archief.viaa.be/mediahaven-rest-api/resources/oauth/access_token'
-#     else:
-#         url = 'https://archief-qas.viaa.be/mediahaven-rest-api/resources/oauth/access_token'
-#     logger.info('requesting token at {} .........'.format(self.env))
-#     payload = {'grant_type': 'password'}
-#     r = requests.post(url,
-#                       auth=HTTPBasicAuth(self.user.encode('utf-8'),
-#                                          self.password.encode('utf-8')),
-#                       data=payload)
-
-#     try:
-#         global token
-#         rtoken = r.json()['access_token']
-#         logger.warn(r.json())
-#         token = 'Bearer ' + rtoken
-#         self.token_requested = True
-#         self.token = token
-#     except Exception as e:
-#         out = {'ERROR': str(e),
-#                'status code': r.status_code,
-#                'request body': str(r.text)}
-#         return json.dumps(out, indent=2)
-#     return token, self.token_requested
-
-
-
-# class MhRequest(object):
-#     global token
-
-#     def __init__(self, query, user, password,
-#                  env='production',
-#                  size=25,
-#                  version=1):
-#         self.query_string = query
-#         self.user = user
-#         self.password = password
-#         self.size = size
-#         self.env = env
-#         self.cache_client = base.Client((config.app_cfg['CanWeIngest']['memcache_host'], 11211))
-#         if not token:
-#             try:
-#                 self.token = self.cache_client.get('mh_token')
-#             except Exception as e:
-#                 logger.error('ERROR: %s, Requesting a Token',str(e),exec_info=True)
-#                 self.token = get_token(self)[0]
-#         else:
-#             self.token = token
-#         self.version = version
-#         if self.env == 'production':
-#             self.url_base = 'https://archief.viaa.be/mediahaven-rest-api/resources/media/'
-#         else:
-#             self.url_base = 'https://archief-qas.viaa.be/mediahaven-rest-api/resources/media/'
-#         if self.user is None:
-
-#             self.user = config.app_cfg['CanWeIngest']['mh_user']
-#             self.password = config.app_cfg['CanWeIngest']['mh_passwd']
-
-#     def __call__(self):
-#         '''do REST call to api'''
-#         s = requests.Session()
-#         retries = Retry(total=5,
-#                         backoff_factor=2,
-#                         status_forcelist=[502, 503, 504])
-#         s.mount('https://', HTTPAdapter(max_retries=retries))
-#         global token
-#         token = self.token
-#         if not token:
-#             r = get_token(self)
-#             token = r[0]
-#             header = {'Authorization': token}
-#             self.token_requested = True
-#             logger.info('requested a token: {} caching..'.format(token))
-#             self.cache_client.set('mh_token', token)
-
-#         header = {'Authorization': self.token}
-#         if self.version == 2:
-#             header['Accept'] = 'application/vnd.mediahaven.v2+json'
-#         r = s.get(self.url_base + self.query_string, headers=header)
-#         logger.info('GET using: ' + self.url_base + self.query_string)
-#         logger.info('Rest status code: %s ' % r.status_code)
-#         if r.status_code == 401:
-#             logger.info('Token expired ! requesting a new one....')
-#             token = get_token(self)[0]
-#             self.token = token
-#             logger.info('setted session token {}'.format(token))
-#             self.cache_client.set('mh_token',token)
-#             header = {'Authorization': self.token}
-#             if self.version == 2:
-#                 header['Accept'] = 'application/vnd.mediahaven.v2+json'
-#             r = s.get(self.url_base + self.query_string, headers=header)
-#             logger.info('Got new token, status_code: %s',str(r.status_code))
-#             self.json_obj = r.json()
-#         else:
-#             r = s.get(self.url_base + self.query_string, headers=header)
-#             self.json_obj = r.json()
-#         return self.json_obj
-
 
