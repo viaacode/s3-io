@@ -4,4 +4,4 @@
 
 CONFIG for celery worker
 
-- [s3_io](../README.md#s3_io-index) / [Modules](../MODULES.md#s3_io-modules) / [S3 Io](index.md#s3-io) / Celeryconfig
+- [s3_io](../README.md#s3io) / [Modules](../MODULES.md#s3_io-modules) / [S3 Io](index.md#s3-io) / Celeryconfig

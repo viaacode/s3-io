@@ -4,7 +4,7 @@
 
 Created on Wed Jan  8 16:25:28 2020
 
-- [s3_io](../README.md#s3_io-index) / [Modules](../MODULES.md#s3_io-modules) / [S3 Io](index.md#s3-io) / S3io Tasks
+- [s3_io](../README.md#s3io) / [Modules](../MODULES.md#s3_io-modules) / [S3 Io](index.md#s3-io) / S3io Tasks
     - [s3_to_ftp](#s3_to_ftp)
     - [swarm_to_ftp](#swarm_to_ftp)
     - [swarm_to_remote](#swarm_to_remote)

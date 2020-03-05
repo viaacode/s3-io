@@ -2,9 +2,9 @@
 
 > Auto-generated documentation modules index.
 
-Full list of [s3_io](README.md#s3_io-index) project modules.
+Full list of [s3_io](README.md#s3io) project modules.
 
-- [s3_io Index](README.md#s3_io-index)
+- [s3io](README.md#s3io)
 - [S3 Io](s3_io/index.md#s3-io)
     - [Celeryconfig](s3_io/celeryconfig.md#celeryconfig)
     - [Create Url To Filesystem Task](s3_io/create_url_to_filesystem_task.md#create-url-to-filesystem-task)

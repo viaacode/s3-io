@@ -4,7 +4,7 @@
 
 MODULE_NAME=s3_io
 
-- [s3_io](../README.md#s3_io-index) / [Modules](../MODULES.md#s3_io-modules) / S3 Io
+- [s3_io](../README.md#s3io) / [Modules](../MODULES.md#s3_io-modules) / S3 Io
     - Modules
         - [Celeryconfig](celeryconfig.md#celeryconfig)
         - [Create Url To Filesystem Task](create_url_to_filesystem_task.md#create-url-to-filesystem-task)

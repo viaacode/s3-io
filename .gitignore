@@ -8,3 +8,5 @@ dist/*
 */__pycache__
 __pycache__
 s3io/known_hosts
+build/*
+dist/*

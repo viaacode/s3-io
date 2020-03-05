@@ -5,17 +5,15 @@
 Created on Fri Aug  2 13:11:15 2019
 Remote curl space checker:
 
-- [s3_io](../README.md#s3_io-index) / [Modules](../MODULES.md#s3_io-modules) / [S3 Io](index.md#s3-io) / RemoteCurl
-    - [KeepalivesFilter](#keepalivesfilter)
-        - [KeepalivesFilter().filter](#keepalivesfilterfilter)
-    - [MhRequest](#mhrequest)
+- [s3_io](../README.md#s3io) / [Modules](../MODULES.md#s3_io-modules) / [S3 Io](index.md#s3-io) / RemoteCurl
     - [RemoteAssembleParts](#remoteassembleparts)
+        - [RemoteAssembleParts().\_\_call\_\_](#remoteassembleparts__call__)
     - [RemoteCurl](#remotecurl)
+        - [RemoteCurl().\_\_call\_\_](#remotecurl__call__)
     - [buildRange](#buildrange)
     - [chunks](#chunks)
     - [decorator](#decorator)
     - [download_in_parts](#download_in_parts)
-    - [get_token](#get_token)
     - [remote_fetch](#remote_fetch)
     - [remote_ffprobe](#remote_ffprobe)
     - [remote_get](#remote_get)
@@ -25,39 +23,14 @@ Gdownload file with curl over ssh with paramiko
 
 @author: tina
 
-## KeepalivesFilter
-
-[[find in source code]](../../s3_io/remote_curl.py#L604)
-
-```python
-class KeepalivesFilter(object):
-```
-
-### KeepalivesFilter().filter
-
-[[find in source code]](../../s3_io/remote_curl.py#L605)
-
-```python
-def filter(record):
-```
-
-## MhRequest
-
-[[find in source code]](../../s3_io/remote_curl.py#L531)
-
-```python
-class MhRequest(object):
-    def __init__(query, user, password, env='production', size=25, version=1):
-```
-
 ## RemoteAssembleParts
 
-[[find in source code]](../../s3_io/remote_curl.py#L255)
+[[find in source code]](../../s3_io/remote_curl.py#L262)
 
 ```python
 class RemoteAssembleParts():
     def __init__(
-        tmp_dir='/tmp',
+        tmp_dir=None,
         dest_path=None,
         host=None,
         user=None,
@@ -67,9 +40,19 @@ class RemoteAssembleParts():
 
 Put the shit togetter
 
+### RemoteAssembleParts().\_\_call\_\_
+
+[[find in source code]](../../s3_io/remote_curl.py#L341)
+
+```python
+def __call__():
+```
+
+Join the files
+
 ## RemoteCurl
 
-[[find in source code]](../../s3_io/remote_curl.py#L142)
+[[find in source code]](../../s3_io/remote_curl.py#L134)
 
 ```python
 class RemoteCurl():
@@ -84,11 +67,30 @@ class RemoteCurl():
     ):
 ```
 
-run curl to download a file with paramiko ssh
+- run curl to download a file with paramiko ssh
+- Arguments:
+
+- url: the url to fetch
+
+- host: host the run curl on (ssh key user)
+
+- user: the ssh user
+
+- request_id: optional for logging
+
+### RemoteCurl().\_\_call\_\_
+
+[[find in source code]](../../s3_io/remote_curl.py#L257)
+
+```python
+def __call__():
+```
+
+Run remote_get
 
 ## buildRange
 
-[[find in source code]](../../s3_io/remote_curl.py#L65)
+[[find in source code]](../../s3_io/remote_curl.py#L56)
 
 ```python
 def buildRange(value, numsplits):
@@ -96,7 +98,7 @@ def buildRange(value, numsplits):
 
 ## chunks
 
-[[find in source code]](../../s3_io/remote_curl.py#L59)
+[[find in source code]](../../s3_io/remote_curl.py#L50)
 
 ```python
 def chunks(lst, n):
@@ -106,7 +108,7 @@ Yield successive n-sized chunks from lst.
 
 ## decorator
 
-[[find in source code]](../../s3_io/remote_curl.py#L39)
+[[find in source code]](../../s3_io/remote_curl.py#L30)
 
 ```python
 def decorator(d):
@@ -116,7 +118,7 @@ Make function d a decorator: d wraps a function fn.
 
 ## download_in_parts
 
-[[find in source code]](../../s3_io/remote_curl.py#L78)
+[[find in source code]](../../s3_io/remote_curl.py#L70)
 
 ```python
 @timeit
@@ -129,28 +131,13 @@ Download url in parts and join (locally)
 
 - [timeit](#timeit)
 
-## get_token
-
-[[find in source code]](../../s3_io/remote_curl.py#L502)
-
-```python
-def get_token(self):
-```
-
 ## remote_fetch
 
-[[find in source code]](../../s3_io/remote_curl.py#L332)
+[[find in source code]](../../s3_io/remote_curl.py#L347)
 
 ```python
 @timeit
-def remote_fetch(
-    url,
-    dest_path,
-    splitBy=8,
-    host=None,
-    user=None,
-    request_id=None,
-):
+def remote_fetch(url, dest_path, splitBy=8, request_id=None):
 ```
 
 Description:
@@ -168,17 +155,17 @@ Description:
 
 ## remote_ffprobe
 
-[[find in source code]](../../s3_io/remote_curl.py#L445)
+[[find in source code]](../../s3_io/remote_curl.py#L468)
 
 ```python
 def remote_ffprobe(mediafile, host=None, user=None):
 ```
 
-Get the pct free of /export (the ftp datastore), using paramiko and df
+Runs ffprobe on remote host
 
 ## remote_get
 
-[[find in source code]](../../s3_io/remote_curl.py#L396)
+[[find in source code]](../../s3_io/remote_curl.py#L414)
 
 ```python
 def remote_get(url, dest_path):
@@ -188,7 +175,7 @@ Downlod url to dest_path, using paramiko and curl
 
 ## timeit
 
-[[find in source code]](../../s3_io/remote_curl.py#L47)
+[[find in source code]](../../s3_io/remote_curl.py#L38)
 
 ```python
 @decorator
