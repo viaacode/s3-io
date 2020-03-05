@@ -33,19 +33,7 @@ swarmurl = config_['castor']['swarmurl']
 
 logger = logging.get_logger('s3io.app', config)
 
-# from elasticapm.contrib.celery import register_exception_tracking, register_instrumentation
-# from elasticapm import Client
-# import elasticapm
-# elasticapm.instrument()
-# elasticapm.set_transaction_name('S3IO')
-# elasticapm.set_transaction_result('SUCCESS')
-# client = Client({'SERVICE_NAME': 'S3IO',
-#                   'DEBUG': False,
-#                   'SERVER_URL': 'http://apm-server-prd.apps.do-prd-okp-m0.do.viaa.be:80'} )
-# register_instrumentation(client)
-# register_exception_tracking(client)
 
-#@elasticapm.capture_span()
 class SwarmIo():
     """Description: streams file to ftp or local disk 
     
@@ -119,12 +107,7 @@ class SwarmIo():
             
     
     def to_ftp(self, progress=False):
-        try:
-            self.s.head(self.url)
-        except ConnectionError as con_e:
-            logger.error(str(con_e), exc_info=True, fields=self.log_fields)
- #       client.begin_transaction(transaction_type='request')
- #       client.capture_message('Start Process S3_TO_FTP'  )   
+
         """Description:
 
             - Create a url to stream to FTP
@@ -136,6 +119,11 @@ class SwarmIo():
                     - Default False
                     - show tqdm progress bar if True
         """
+        try:
+            self.s.head(self.url)
+        except ConnectionError as con_e:
+            logger.error(str(con_e), exc_info=True, fields=self.log_fields)
+
         self.progress = progress
         ftp = ftplib.FTP(self.ftp_host)
         destpath = self.to_ftp_path
@@ -145,12 +133,13 @@ class SwarmIo():
         logger.info('streaming url: %s', self.url,
                     fields=self.log_fields)
         if self.progress:
-            req =RequestIterator(self.url).as_progress()
+            req = RequestIterator(self.url).as_progress()
         else:
             req = RequestIterator(self.url).as_stream()
         ftp.storbinary('STOR %s' % (destpath,), req)
         logger.info('FTP upload Finished for: %s',
-                    destpath,fields=self.log_fields)
+                     destpath,
+                     fields=self.log_fields)
     #    client.end_transaction('s3io_to_ftp_task', 200)
         return destpath
     
@@ -158,6 +147,7 @@ class SwarmIo():
         """Description:
 
             - GET url stream to stream to file
+            
         """
         logger.info('Starting: to_file, for object: %s',
                     self.key)

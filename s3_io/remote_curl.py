@@ -18,9 +18,8 @@ import requests
 import json
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
-# from urllib3.util.retry import Retry
 from json import JSONDecodeError
-
+from urllib.parse import urlparse
 config = ConfigParser()
 logger = logging.get_logger('s3io', config)
 
@@ -66,14 +65,17 @@ def buildRange(value, numsplits):
 
 
 @timeit
-def download_in_parts(url=None, dest_path=None, splitBy=4):
+def download_in_parts(url=None, dest_path=None, splitBy=4, ):
     """
     Download url in parts and join (locally)
     """
     if not url:
         logger.error("Please Enter some url to begin download.")
         raise OSError
-
+        
+    u = urlparse(url)
+    hostname = u.hostname
+    logger.info('hostname: %s', hostname)
     sizeInBytes = requests.head(
          url,
          allow_redirects=True,
@@ -153,7 +155,7 @@ class RemoteCurl():
                  parts=True,
                  request_id=None):
          # removed , after host
-        self.host = host
+        self.host = host,
         self.request_id = request_id
         self.fields = {"x-meemoo-request-id": self.request_id,
                        "RESULT": "STARTED"}
@@ -225,8 +227,7 @@ class RemoteCurl():
                     logger.error('ERROR fetching: %s', str(speed[3]),
                                  exc_info=True,
                                  fields=fields)
-                    raise OSError
-                if 'SUCCESS' in result:
+                else:
                     fields['RESULT'] = 'SUCCESS'
                     fields['x-meemoo-request-id'] = self.request_id
 
@@ -267,10 +268,9 @@ class RemoteAssembleParts():
                  user=None,
                  request_id='x-meemoo-request-id'):
         self.dest_path = dest_path
-        if tmp_dir is None:
-            self.tmp_dir, f = os.path.split(self.dest_path)
-        else:
-            self.tmp_dir = tmp_dir
+       # if tmp_dir is None:
+        self.tmp_dir, f = os.path.split(self.dest_path)
+
         b, _e = os.path.splitext(f)
         b = os.path.basename(os.path.normpath(b))
         self.tmp_dir = self.tmp_dir + '/work/' + b.rstrip()
@@ -288,7 +288,7 @@ class RemoteAssembleParts():
     @timeit
     def _join_files(self):
         """
-        Get the pct free of /export (the ftp datastore), using paramiko and df
+        Join the files with cat
         """
         k = self.private_key
         if k:
@@ -298,7 +298,7 @@ class RemoteAssembleParts():
                                   port=22,
                                   username=self.user,)
 
-            cmd = """cd {} &&
+            cmd = """pwd;ls-la;cd {} &&
             if [ -f {} ]; then echo ERROR file exists; echo ERROR & exit 1; else
             for i in $(ls *part*);do cat $i  >> {};done;fi&&
             cd .. &&
@@ -307,17 +307,16 @@ class RemoteAssembleParts():
                                                 self.dest_path,
                                                 self.dest_path,
                                                 self.tmp_dir)
-            logger.debug('Remote execute on %s:  %s',
+            logger.info('Remote execute on %s:  %s',
                          self.host,
                          str(cmd.rstrip()))
             try:
-                _stdin, stdout, stderr = remote_client.exec_command(cmd)
+                _stdin, stdout, _stderr = remote_client.exec_command(cmd)
                 out = stdout.readlines()
-                err = stderr.readlines()
                 if 'ERROR\n' in out:
                     self.fields['RESULT'] = 'FAILED'
                     self.fields['x-meemoo-request-id'] = self.request_id
-                    logger.error(str(err)+str(out),
+                    logger.error(str(out),
                                  exc_info=True,
                                  fields=self.fields)
                     raise IOError
@@ -334,11 +333,11 @@ class RemoteAssembleParts():
                              self.dest_path,
                              fields=self.fields)
                 raise
-            return self.fields
+            return True
 
     def __call__(self):
-        '''Join the files'''
-        return self._join_files()
+        """Join the files"""
+        self._join_files()
 
 
 
@@ -346,6 +345,8 @@ class RemoteAssembleParts():
 def remote_fetch(url,
                  dest_path,
                  splitBy=8,
+                 host=None,
+                 user=None,
                  request_id=None):
     """Description:
 
@@ -373,7 +374,7 @@ def remote_fetch(url,
         raise requests.exceptions.HTTPError
     ranges = buildRange(int(sizeInBytes), splitBy)
     def downloadChunk(idx, irange):
-        curl_headers = "-H 'host: s3-qas.viaa.be'"+\
+        curl_headers="-H 'host: s3-qas.viaa.be'"+\
                        " -H 'range: bytes={}' -r {}".format(irange, irange)
         RemoteCurl(url=url,
                    dest_path=dest_path + 'part' + str(idx),
@@ -406,12 +407,20 @@ def remote_fetch(url,
     logger.info('Remote curl in parts and assemble for %s complete',
                 dest_path,
                 fields=fields)
-    return dest_path
+    return True
 
 
 def remote_get(url,dest_path):
-    """
-    Downlod url to dest_path, using paramiko and curl
+    """Description:
+         
+         - Downlod url to dest_path, using paramiko and curl
+
+       Arguments:
+            
+            - dest_path: string
+
+            - url : string
+     
     """
     k = paramiko.RSAKey.from_private_key_file(
             config.app_cfg['RemoteCurl']['private_key_path'])
@@ -422,9 +431,8 @@ def remote_get(url,dest_path):
                               port=22,
                               username=config.app_cfg['RemoteCurl']['user'],)
 
-        cmd= "curl  -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\n\" -L " +\
-        url + ' -o ' + dest_path+\
-        " && echo SUCCESS || echo ERROR & exit 1"
+        cmd = "curl  -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\n\" -L " +\
+        url + ' -o ' + dest_path + " && echo SUCCESS || echo ERROR & exit 1"
         try:
             _stdin, stdout, stderr = remote_client.exec_command(cmd)
             out = stdout.readlines()

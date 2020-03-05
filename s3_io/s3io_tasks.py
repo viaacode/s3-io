@@ -15,11 +15,8 @@ import s3_io.celeryconfig as celeryconfig
 app = Celery('s3io',)
 app.config_from_object(celeryconfig)
 from s3_io.remote_curl import remote_fetch
-
 config = ConfigParser()
 logger = logging.get_logger('s3io', config)
-
-
 app.config_from_object(celeryconfig)
 
 app.conf.task_queues = (Queue('s3io',
@@ -28,33 +25,15 @@ app.conf.task_queues = (Queue('s3io',
 app.conf.task_default_queue = 's3io'
 app.conf.task_default_exchange_type = 'direct'
 app.conf.task_default_routing_key = 's3io'
-
-
 config_ = configparser.ConfigParser()
 config_.read('/etc/viaa-workers/config.ini')
-#KEY = '000e1e7c4440.mxf'
 
 user = config_['S3_TO_FTP']['ftpuser']
-passwd =  config_['S3_TO_FTP']['ftppassword']
-server =  config_['S3_TO_FTP']['ftpserver']
+passwd = config_['S3_TO_FTP']['ftppassword']
+server = config_['S3_TO_FTP']['ftpserver']
 s3access_key = config_['S3_TO_FTP']['s3access_key']
 s3secret_key = config_['S3_TO_FTP']['s3secret_key']
 
-
-
-# from elasticapm import Client
-# import elasticapm
-# elasticapm.set_transaction_name('S3IO')
-# elasticapm.set_transaction_result('SUCCESS')
-# from elasticapm.contrib.celery import  register_instrumentation, register_exception_tracking
-# client = Client({'SERVICE_NAME': 'S3IO',
-#                  'DEBUG': False,
-#                  'SERVER_URL': 
-#                      'http://apm-server-prd.apps.do-prd-okp-m0.do.viaa.be:80'}) 
-# register_instrumentation(client)
-# register_exception_tracking(client)
-
-# elasticapm.instrument()
 
 @app.task(max_retries=5, bind=True)
 def swarm_to_ftp(self, **body):
@@ -102,19 +81,18 @@ def swarm_to_remote(self, **body):
                 msg['source']['object']['key'],
                 fields=log_fields)
     try:
-        url='http://swarmget.do.viaa.be/'+ bucket + '/' + key
-        f=remote_fetch(url=url, dest_path=dest_path, 
+        url = 'http://swarmget.do.viaa.be/'+ bucket + '/' + key
+        f = remote_fetch(url=url, dest_path=dest_path, 
                        host='do-prd-tra-02.do.viaa.be', user='tina',
                        request_id=id_)
       
-        return f
+        return str(f)
     except Exception as e:
-        logger.error('#### ERROR %s :Task swarm_to_ftp failed for id %s ', 
+        logger.error('#### ERROR %s :Task swarm_to_remote failed for id %s ', 
                      str(e),
                      str(self.request.id),
                      exc_info=True)
         raise self.retry(coutdown=1, exc=e, max_retries=5)
-
 
 @app.task(max_retries=3, bind=True)
 def s3_to_ftp(self, **body):

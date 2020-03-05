@@ -88,7 +88,7 @@ def process(msg):
         return t
     # else:
     logger.error('Not a valid message')
-    return False
+    return True
 
-if __name__ == "__main__":
-    process(debug_msg)
+# if __name__ == "__main__":
+#     process(debug_msg)
