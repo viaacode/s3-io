@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar  3 14:12:09 2020
-
+0k2699098k-left.mp4
 @author: tina
 """
 
@@ -90,5 +90,5 @@ def process(msg):
     logger.error('Not a valid message')
     return True
 
-# if __name__ == "__main__":
-#     process(debug_msg)
+if __name__ == "__main__":
+    process(debug_msg)

@@ -173,6 +173,8 @@ class RemoteCurl():
                        "RESULT": "STARTED"}
         if host is None:
             self.host = config.app_cfg['RemoteCurl']['host']
+        else:
+             self.host = host
         self.user = user
         if user is None:
             self.user = config.app_cfg['RemoteCurl']['user']
@@ -185,6 +187,7 @@ class RemoteCurl():
         if headers:
             self.headers = headers
         if parts:
+            self.parts=True 
             _dir, f = os.path.split(self.dest_path)
             b, _e = os.path.splitext(f)
             b = os.path.basename(os.path.normpath(b))
@@ -198,6 +201,8 @@ class RemoteCurl():
     def _remote_get(self):
         """Remote download from swarm to local filesystem curl + ssh"""
         fields = {}
+        logger.info("Remote curl start from server %s using tempdir :%s:", 
+                    self.host,self.tmp_dir)
         k = self.private_key#paramiko.RSAKey.from_private_key_file("/home/tina/.ssh/id_rsa")
         if k:
             remote_client = paramiko.SSHClient()
@@ -266,8 +271,10 @@ class RemoteCurl():
                              str(stderr.readlines()),
                              str(val_e),
                              fields=fields)
-            return fields
-
+            if self.parts:
+                return str(self.tmp_dir)
+            else:
+                 return True
 
     def __call__(self):
         '''Run remote_get'''
@@ -363,7 +370,7 @@ class RemoteAssembleParts():
         """Join the files"""
         self._join_files()
 
-
+global tmp_dir
 
 @timeit
 def remote_fetch(url,
@@ -371,7 +378,8 @@ def remote_fetch(url,
                  splitBy=4,
                  host=None,
                  user=None,
-                 request_id=None):
+                 request_id=None,
+                 ):
     """Description:
 
          - Using paramiko ssh client
@@ -380,6 +388,8 @@ def remote_fetch(url,
          (defaults to 4)
 
          - download frorm url in parts and assemble to destpath
+         
+         - the parts dir is returned by remoteCurl instance output
 
      Arguments:
 
@@ -388,6 +398,8 @@ def remote_fetch(url,
           - parts: creates a hidden dir (.) with basename of filename containing the file
 
     """
+
+
     if not url:
         logger.error("Please Enter some url to begin download.")
         raise IOError
@@ -405,9 +417,13 @@ def remote_fetch(url,
         raise requests.exceptions.HTTPError
     ranges = buildRange(int(sizeInBytes), splitBy)
     def downloadChunk(idx, irange):
+        host_header=config.app_cfg['RemoteCurl']['domain_header']
+
         curl_headers="-H 'host: {}'".format(host_header)+\
                        " -H 'range: bytes={}' -r {}".format(irange, irange)
-        RemoteCurl(url=url,
+        logger.info(str(curl_headers))
+        global tmp_dir
+        tmp_dir = RemoteCurl(url=url,
                    dest_path=dest_path + '_part_' + str(idx),
                    request_id=request_id,
                    parts=True,
@@ -432,7 +448,8 @@ def remote_fetch(url,
         th.join()
 
     ## Assemble PARTS
-    RemoteAssembleParts(dest_path=dest_path)()
+    RemoteAssembleParts(dest_path=dest_path,
+                        tmp_dir=tmp_dir)()
     fields = {'RESULT': 'SUCCESS',
               'x-meemoo-request-id': request_id}
     logger.info('Remote curl in parts and assemble for %s complete',

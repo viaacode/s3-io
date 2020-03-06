@@ -83,14 +83,11 @@ def __main__():
             logger.error('missing key: %s',
                          str(e), exc_info=True)
             ch.basic_ack(delivery_tag=method.delivery_tag)
- #           pass
-
         except JSONDecodeError as j_e:
             logger.error('Input Json error: %s',
                          str(j_e),
                          exc_info=True)
             ch.basic_ack(delivery_tag=method.delivery_tag)
-#            pass
         except pika.exceptions.ConnectionClosedByBroker:
             exit(1)
 
