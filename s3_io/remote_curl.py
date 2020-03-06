@@ -6,6 +6,12 @@ Remote curl space checker:
 
     Gdownload file with curl over ssh with paramiko
 
+Examples:
+
+```curl_headers="-H 'host:s3-domain.org"'"
+r=RemoteCurl(url="http://10.50.152.194:80/tests3vents/0k2699098k-left.mp4", dest_path='/mnt/temptina/tmp/test 123456.x
+```
+
 @author: tina
 """
 import os
@@ -16,6 +22,7 @@ import paramiko
 import time
 import requests
 import json
+#import uuid
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
 from json import JSONDecodeError
@@ -67,12 +74,16 @@ def buildRange(value, numsplits):
 @timeit
 def download_in_parts(url=None, dest_path=None, splitBy=4, ):
     """
+    Notes:
+
+         - not used needs to run on host
+
     Download url in parts and join (locally)
     """
     if not url:
         logger.error("Please Enter some url to begin download.")
         raise OSError
-        
+
     u = urlparse(url)
     hostname = u.hostname
     logger.info('hostname: %s', hostname)
@@ -134,6 +145,7 @@ def download_in_parts(url=None, dest_path=None, splitBy=4, ):
 class RemoteCurl():
     """
     - run curl to download a file with paramiko ssh
+
     - Arguments:
 
          - url: the url to fetch
@@ -152,7 +164,7 @@ class RemoteCurl():
                  host=None,
                  user=None,
                  headers=None,
-                 parts=True,
+                 parts=False,
                  request_id=None):
          # removed , after host
         self.host = host,
@@ -164,6 +176,8 @@ class RemoteCurl():
         self.user = user
         if user is None:
             self.user = config.app_cfg['RemoteCurl']['user']
+        if host is None:
+            self.host = config.app_cfg['RemoteCurl']['host'] 
         self.url = url
         self.dest_path = dest_path
         self.keyfile = config.app_cfg['RemoteCurl']['private_key_path']
@@ -171,10 +185,11 @@ class RemoteCurl():
         if headers:
             self.headers = headers
         if parts:
-            self.tmp_dir, f = os.path.split(self.dest_path)
+            _dir, f = os.path.split(self.dest_path)
             b, _e = os.path.splitext(f)
             b = os.path.basename(os.path.normpath(b))
-            self.tmp_dir = self.tmp_dir + '/work/' + b.rstrip()
+            #self.tmp_dir = self.tmp_dir + '/work/' + b.rstrip()
+            self.tmp_dir = _dir + "/." +  b
             self.dest_path = os.path.join(self.tmp_dir, f)
         else:
             self.tmp_dir = os.path.split(dest_path)[0]
@@ -190,12 +205,12 @@ class RemoteCurl():
             remote_client.connect(self.host,
                                   port=22,
                                   username=self.user,)
-            cmd = "mkdir -p {} &&".format(self.tmp_dir)+\
+            cmd = "mkdir -p \"{}\" &&".format(self.tmp_dir)+\
             "curl -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\n\" -L "+\
             " {} ".format(self.headers) +\
             " -s " + self.url +\
-            " -o {} ".format(self.dest_path)+\
-            " && echo SUCCESS || echo ERROR & exit 1"
+            " -o \"{}\" ".format(self.dest_path)+\
+            " && ls {}; echo ###; echo ####;  echo SUCCESS || echo ERROR & exit 1".format(self.tmp_dir)
             logger.info("Starting Remote CURL on %s: %s",
                         self.host,
                         str(cmd),
@@ -203,6 +218,7 @@ class RemoteCurl():
             try:
                 _stdin, stdout, stderr = remote_client.exec_command(cmd)
                 out = stdout.readlines()
+                logger.info(str(out))
                 if 'ERROR\n' in str(out[0]):
                     logger.error(str(stderr.readlines()),
                                  exc_info=True)
@@ -267,13 +283,8 @@ class RemoteAssembleParts():
                  host=None,
                  user=None,
                  request_id='x-meemoo-request-id'):
+        self.tmp_dir = tmp_dir
         self.dest_path = dest_path
-       # if tmp_dir is None:
-        self.tmp_dir, f = os.path.split(self.dest_path)
-
-        b, _e = os.path.splitext(f)
-        b = os.path.basename(os.path.normpath(b))
-        self.tmp_dir = self.tmp_dir + '/work/' + b.rstrip()
         if host is None:
             self.host = config.app_cfg['RemoteCurl']['host']
         self.user = user,
@@ -289,6 +300,18 @@ class RemoteAssembleParts():
     def _join_files(self):
         """
         Join the files with cat
+
+        - go to temp dir
+
+        - for i in $(ls *part*);do cat $i  >> dest_path;done;
+
+        - go out tempdir
+
+        - rm tempdir
+        Notes:
+
+             - not parsing stderr we return 0 on error
+             string parse ERROR in stdout stream
         """
         k = self.private_key
         if k:
@@ -298,18 +321,18 @@ class RemoteAssembleParts():
                                   port=22,
                                   username=self.user,)
 
-            cmd = """pwd;ls-la;cd {} &&
-            if [ -f {} ]; then echo ERROR file exists; echo ERROR & exit 1; else
-            for i in $(ls *part*);do cat $i  >> {};done;fi&&
+            cmd = """cd {} &&
+            if [ -f "{}" ]; then echo ERROR;fi
+            for i in $(ls *part*);do cat "$i"  >> "{}";done;
             cd .. &&
-            rm -rf {} &&
+            rm -rf "{}" &&
             echo SUCCESS ||echo ERROR""".format(self.tmp_dir,
                                                 self.dest_path,
                                                 self.dest_path,
                                                 self.tmp_dir)
             logger.info('Remote execute on %s:  %s',
-                         self.host,
-                         str(cmd.rstrip()))
+                        self.host,
+                        str(cmd.rstrip()))
             try:
                 _stdin, stdout, _stderr = remote_client.exec_command(cmd)
                 out = stdout.readlines()
@@ -320,6 +343,7 @@ class RemoteAssembleParts():
                                  exc_info=True,
                                  fields=self.fields)
                     raise IOError
+
                 else:
                     self.fields['RESULT'] = 'SUCCESS'
                     self.fields['x-meemoo-request-id'] = self.request_id
@@ -344,28 +368,35 @@ class RemoteAssembleParts():
 @timeit
 def remote_fetch(url,
                  dest_path,
-                 splitBy=8,
+                 splitBy=4,
                  host=None,
                  user=None,
                  request_id=None):
     """Description:
 
+         - Using paramiko ssh client
+
+         - Used in the task uses RemoteCurl to download parts in threads
+         (defaults to 4)
+
          - download frorm url in parts and assemble to destpath
 
      Arguments:
 
-          - host: remote hoistname
+          - host: remote hostname
           - user: needs to have ssh key on remote host working!!
+          - parts: creates a hidden dir (.) with basename of filename containing the file
 
     """
     if not url:
         logger.error("Please Enter some url to begin download.")
         raise IOError
+    host_header=config.app_cfg['RemoteCurl']['domain_header']
     fields={'RESULT': 'SCHEDULED',
             'x-meemoo-request-id': request_id}
     sizeInBytes = requests.head(url,
                                 allow_redirects=True,
-                                headers={'host': 's3-qas.viaa.be',
+                                headers={'host': host_header,
                                          'Accept-Encoding': 'identity'}).headers.get('content-length', None)
     logger.info("%s bytes to download. url: %s",
            str(sizeInBytes),str(url), fields=fields)
@@ -374,11 +405,14 @@ def remote_fetch(url,
         raise requests.exceptions.HTTPError
     ranges = buildRange(int(sizeInBytes), splitBy)
     def downloadChunk(idx, irange):
-        curl_headers="-H 'host: s3-qas.viaa.be'"+\
+        curl_headers="-H 'host: {}'".format(host_header)+\
                        " -H 'range: bytes={}' -r {}".format(irange, irange)
         RemoteCurl(url=url,
-                   dest_path=dest_path + 'part' + str(idx),
+                   dest_path=dest_path + '_part_' + str(idx),
                    request_id=request_id,
+                   parts=True,
+                   user=user,
+                   host=host,
                    headers=curl_headers)()
     # create one downloading thread per chunk
     downloaders = [
@@ -396,12 +430,9 @@ def remote_fetch(url,
     # join the Threads!
     for th in downloaders:
         th.join()
-    tmp_dir, _f = os.path.split(dest_path)
-    b, _e = os.path.splitext(tmp_dir)
-    tmp_dir = tmp_dir + '/temp' + b.rstrip()
+
     ## Assemble PARTS
-    RemoteAssembleParts(tmp_dir=tmp_dir,
-                        dest_path=dest_path)()
+    RemoteAssembleParts(dest_path=dest_path)()
     fields = {'RESULT': 'SUCCESS',
               'x-meemoo-request-id': request_id}
     logger.info('Remote curl in parts and assemble for %s complete',
@@ -412,15 +443,17 @@ def remote_fetch(url,
 
 def remote_get(url,dest_path):
     """Description:
-         
+
+         - NOT USED atm
+
          - Downlod url to dest_path, using paramiko and curl
 
        Arguments:
-            
+
             - dest_path: string
 
             - url : string
-     
+
     """
     k = paramiko.RSAKey.from_private_key_file(
             config.app_cfg['RemoteCurl']['private_key_path'])

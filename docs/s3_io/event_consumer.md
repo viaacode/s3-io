@@ -5,7 +5,7 @@
 Created on Fri Jan 10 15:40:19 2020
     Description:
 
-- [s3_io](../README.md#s3io) / [Modules](../MODULES.md#s3_io-modules) / [S3 Io](index.md#s3-io) / Event Consumer
+- [S3io](../README.md#s3io) / [Modules](../MODULES.md#s3io-modules) / [S3 Io](index.md#s3-io) / Event Consumer
 
 - queue : hardcodes atm to : s3_to_remotefs
 

@@ -9,7 +9,7 @@ Created on Fri Jan 8 09:07:08 2018
 from setuptools import setup
 
 setup(name='s3_io',
-      version='0.1',
+      version='1.0.1',
       description='VIAA S3 Events',
       long_description='Publiseh s3 event to rabbitmq.',
       classifiers=[
@@ -26,7 +26,7 @@ setup(name='s3_io',
       packages=['s3_io'],
       package_dir={'s3_io':'s3_io'}, # the one line where all the magic happens
         package_data={
-        's3io': ['_build/*'],
+        's3_io': ['_build/*'],
       },
       install_requires=[
               'pika==1.1.0',

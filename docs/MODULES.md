@@ -1,8 +1,8 @@
-# s3_io Modules
+# S3io Modules
 
 > Auto-generated documentation modules index.
 
-Full list of [s3_io](README.md#s3io) project modules.
+Full list of [S3io](README.md#s3io) project modules.
 
 - [s3io](README.md#s3io)
 - [S3 Io](s3_io/index.md#s3-io)

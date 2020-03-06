@@ -7,7 +7,7 @@ Created on Tue Mar  3 14:12:09 2020
 """
 
 import uuid
-from s3io.s3io_tasks import swarm_to_remote
+from s3_io.s3io_tasks import swarm_to_remote
 import configparser
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
@@ -28,7 +28,7 @@ debug_msg = {"service_type": "celery",
                      "name": "tests3vents"
                       },
                  "object": {
-                     "key": "bigfile"
+                     "key": "0k2699098k-left.mp4"
                       }
                  },
              "destination": {

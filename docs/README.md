@@ -4,10 +4,10 @@
 
 @author: tina
 
-Full s3_io project documentation can be found in [Modules](MODULES.md#s3_io-modules)
+Full S3io project documentation can be found in [Modules](MODULES.md#s3io-modules)
 
 - [s3io](#s3io)
-  - [s3_io Modules](MODULES.md#s3_io-modules)
+  - [S3io Modules](MODULES.md#s3io-modules)
 
 ## s3io
 ```console

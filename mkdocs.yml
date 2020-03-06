@@ -1,7 +1,17 @@
 docs_dir: docs
 pages:
-- functions: MODULES.md
+- Modules: MODULES.md
 - Readme: README.md
+
+- index: s3_io/index.md
+- celeryconfig.py: s3_io/celeryconfig.md
+- create_url_to_filesystem_task.py: s3_io/create_url_to_filesystem_task.md
+- event_consumer.py: s3_io/event_consumer.md
+- remote_curl.py: s3_io/remote_curl.md
+- s3_worker_ap.py: s3_io/s3_worker_api.md
+- s3io_tasks.py: s3_io/s3io_tasks.md
+- s3io_tools.py: s3_io/s3io_tools.md
+- s3io_worke.py: s3_io/s3io_worker.md 
 
 site_dir: _build/site
 site_name: Swarm S3 IO tools
