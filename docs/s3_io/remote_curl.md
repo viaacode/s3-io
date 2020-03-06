@@ -24,14 +24,14 @@ Gdownload file with curl over ssh with paramiko
 #### Examples
 
 ```curl_headers="-H 'host:s3-domain.org"'"
-r=RemoteCurl(url="http://10.50.152.194:80/tests3vents/0k2699098k-left.mp4?domain=s3-qas.viaa.be",
-   dest_path='/mnt/temptina/tmp/test 123456.x```
+r=RemoteCurl(url="http://10.50.152.194:80/tests3vents/0k2699098k-left.mp4", dest_path='/mnt/temptina/tmp/test 123456.x
+```
 
-@author: tina
+- `@author` - tina
 
 ## RemoteAssembleParts
 
-[[find in source code]](../../s3_io/remote_curl.py#L275)
+[[find in source code]](../../s3_io/remote_curl.py#L277)
 
 ```python
 class RemoteAssembleParts():
@@ -48,7 +48,7 @@ Put the shit togetter
 
 ### RemoteAssembleParts().\_\_call\_\_
 
-[[find in source code]](../../s3_io/remote_curl.py#L360)
+[[find in source code]](../../s3_io/remote_curl.py#L362)
 
 ```python
 def __call__():
@@ -87,7 +87,7 @@ class RemoteCurl():
 
 ### RemoteCurl().\_\_call\_\_
 
-[[find in source code]](../../s3_io/remote_curl.py#L270)
+[[find in source code]](../../s3_io/remote_curl.py#L272)
 
 ```python
 def __call__():
@@ -144,7 +144,7 @@ Download url in parts and join (locally)
 
 ## remote_fetch
 
-[[find in source code]](../../s3_io/remote_curl.py#L366)
+[[find in source code]](../../s3_io/remote_curl.py#L368)
 
 ```python
 @timeit
@@ -160,12 +160,18 @@ def remote_fetch(
 
 Description:
 
+- Using paramiko ssh client
+
+- Used in the task uses RemoteCurl to download parts in threads
+(defaults to 4)
+
 - download frorm url in parts and assemble to destpath
 
 #### Arguments
 
-- `-` *host* - remote hoistname
+- `-` *host* - remote hostname
 - `-` *user* - needs to have ssh key on remote host working!!
+- `-` *parts* - creates a hidden dir (.) with basename of filename containing the file
 
 #### See also
 
@@ -173,7 +179,7 @@ Description:
 
 ## remote_ffprobe
 
-[[find in source code]](../../s3_io/remote_curl.py#L494)
+[[find in source code]](../../s3_io/remote_curl.py#L507)
 
 ```python
 def remote_ffprobe(mediafile, host=None, user=None):
@@ -183,13 +189,15 @@ Runs ffprobe on remote host
 
 ## remote_get
 
-[[find in source code]](../../s3_io/remote_curl.py#L433)
+[[find in source code]](../../s3_io/remote_curl.py#L444)
 
 ```python
 def remote_get(url, dest_path):
 ```
 
 Description:
+
+- NOT USED atm
 
 - Downlod url to dest_path, using paramiko and curl
 
