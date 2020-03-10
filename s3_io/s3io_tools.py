@@ -18,7 +18,7 @@ from botocore.exceptions import ClientError
 import subprocess
 import shlex
 import shutil
-import uuid 
+import uuid
 import json
 from urllib3.util.retry import Retry
 from urllib.parse import unquote
@@ -27,23 +27,23 @@ from viaa.configuration import ConfigParser
 
 config = ConfigParser()
 swarmurl = config.app_cfg['castor']['swarmurl']
-
+swarm_domain = config.app_cfg['castor']['swarmdomain']
 logger = logging.get_logger('s3io', config)
 
 
 class SwarmIo():
-    """Description: streams file to ftp or local disk 
-    
+    """Description: streams file to ftp or local disk
+
     - Args:
-        
+
         - bucket
-        
+
         - key(object)
-        
+
         - request_id (optional)
-        
+
     - Kwargs on off these two:
-        
+
         - to_ftp: dict:
 
                 - user:
@@ -59,7 +59,7 @@ class SwarmIo():
 
                 - path:
                     string
-    
+
     """
     def __init__(self, bucket, key,
                  request_id=None,
@@ -78,7 +78,7 @@ class SwarmIo():
             self.request_id=str(uuid.uuid4())
         else:
             self.request_id=request_id
-            
+
         self.key = key
         self.bucket = bucket
         key = unquote(self.key)
@@ -86,7 +86,6 @@ class SwarmIo():
         logger.info("requesting object key info for: %s", self.key,
                     fields=self.log_fields)
         swarm_url = 'http://' + swarmurl
-        swarm_domain = swarm_domain
         self.headers={'host':swarm_domain}
         self.s = requests.Session()
         retries = Retry(total=5,
@@ -94,15 +93,15 @@ class SwarmIo():
                         status_forcelist=[502, 503, 504])
         self.url=swarm_url + '/' + self.bucket + '/' + self.key
         self.url.replace('//','/',1)
-        self.s.mount('http://', HTTPAdapter(max_retries=retries))      
+        self.s.mount('http://', HTTPAdapter(max_retries=retries))
         self.to_filesystem = to_file['path']
         self.to_ftp_user = to_ftp['user']
         self.to_ftp_password = to_ftp['password']
         self.to_ftp_path = to_ftp['ftp_path']
         self.ftp_host = to_ftp['ftp_host']
-        
-            
-    
+
+
+
     def to_ftp(self, progress=False):
 
         """Description:
@@ -139,16 +138,16 @@ class SwarmIo():
                      fields=self.log_fields)
     #    client.end_transaction('s3io_to_ftp_task', 200)
         return destpath
-    
+
     def to_file(self):
         """Description:
 
             - GET url stream to stream to file
-            
+
         """
         logger.info('Starting: to_file, for object: %s',
                     self.key)
-       
+
         logger.info('##### Presignesd URL: %s #####',
                     self.url)
         try:
@@ -158,16 +157,16 @@ class SwarmIo():
         except Exception as gen_exc:
             logger.error(fields={'error':str(gen_exc),
                                  'x-meemoo-request-id':self.request_id})
-  
-    
-    
-#@elasticapm.capture_span()    
+
+
+
+#@elasticapm.capture_span()
 class SwarmS3Client():
     """Description:
 
         - Streams s3 object to file or ftp path
         - endpoint/<bucket>/obj
-        
+
     Args:
 
         - endpoint:
@@ -186,7 +185,7 @@ class SwarmS3Client():
             aws like bucket
 
     Kwargs:
-        
+
         - to_ftp: dict:
 
                 - user:
@@ -235,7 +234,7 @@ class SwarmS3Client():
                 aws_access_key_id = self.key,
                 aws_secret_access_key = self.secret,
                 endpoint_url=self.endpoint)
-    
+
     def to_file(self):
         """Description:
 
@@ -286,7 +285,7 @@ class SwarmS3Client():
         return destpath
 
     def signed_url(self):
- 
+
         url = self.client.generate_presigned_url(
                 'get_object', {'Bucket': self.bucket,
                                'Key': self.obj})
@@ -297,7 +296,7 @@ class SwarmS3Client():
         k = self.client.head_object(Bucket = self.bucket, Key = self.obj)
         if 'Metadata' in k:
             k = k["Metadata"]
-        
+
         logger.info(k)
 
         return k
@@ -308,47 +307,47 @@ class SwarmS3Client():
         logger.info('running ' + str(args))
         ffprobeOutput = subprocess.check_output(args).decode('utf-8')
         ffprobeOutput = json.loads(ffprobeOutput)
-        formatted=json.dumps(ffprobeOutput, sort_keys=False)        
+        formatted=json.dumps(ffprobeOutput, sort_keys=False)
         return(str(formatted))
-         
+
 
     def update_metadata_put(self):
         try:
             # retrieve the existing item to reload the contents
             response = self.client.get_object(Bucket=self.bucket, Key=self.obj)
             existing_body = response.get("Body").read()
-    
+
             # set the new metadata
             new_metadata = self.metadata
-    
+
             self.client.put_object(Bucket=self.bucket, Key=self.obj,
-                                   Body=existing_body, 
+                                   Body=existing_body,
                                    Metadata=new_metadata)
-    
+
             print("Metadata update (PUT) for {0} Complete!\n".format(self.obj))
         except ClientError as be:
             print("CLIENT ERROR: {0}\n".format(be))
         except Exception as e:
             logger.error("Unable to update metadata: {0}".format(e))
-            
+
     def wipe_metadata_put(self):
         try:
             # retrieve the existing item to reload the contents
             response = self.client.get_object(Bucket=self.bucket, Key=self.obj)
             existing_body = response.get("Body").read()
-              
-    
+
+
             self.client.put_object(Bucket=self.bucket,
                                    Key=self.obj,
-                                   Body=existing_body, 
+                                   Body=existing_body,
                                    Metadata={})
-    
+
             print("Metadata update (PUT) for {0} Complete!\n".format(self.obj))
         except ClientError as be:
             logger.error("CLIENT ERROR: {0}\n".format(be))
         except Exception as e:
             logger.error("Unable to update metadata: {0}".format(e))
-            
+
     def update_metadata(self):
         """Fails if key exists"""
         session = boto3.session.Session()
@@ -359,29 +358,29 @@ class SwarmS3Client():
                 endpoint_url=self.endpoint)
         k = s3_client.head_object(Bucket = self.bucket, Key = self.obj)
         m = k["Metadata"]
-        
+
         for i in self.metadata:
             if check_key(m, i):
                 logger.error('key %s exists',i )
 
         try:
-            s3_client.copy_object(Bucket = self.bucket, 
+            s3_client.copy_object(Bucket = self.bucket,
                                Key = self.obj,
                                CopySource = self.bucket + '/' + self.obj,
-                               Metadata = self.metadata, 
+                               Metadata = self.metadata,
                                MetadataDirective='REPLACE')
         except ClientError as metadata_update_error:
             logger.error(metadata_update_error)
-    
+
        # logger.info(m)
 
-def check_key(dict, key): 
-      
-    if key in dict.keys(): 
-        logger.info("Key isPresent ! value: %s", dict[key]) 
+def check_key(dict, key):
+
+    if key in dict.keys():
+        logger.info("Key isPresent ! value: %s", dict[key])
         return True
-    else: 
-        logger.info("Key isNotPresent ! value: %s", key) 
+    else:
+        logger.info("Key isNotPresent ! value: %s", key)
         return False
 
 
@@ -404,25 +403,25 @@ class IteratorToStream(io.RawIOBase):
         if self._on_update:
             self._on_update()
         return res
-    
-#@elasticapm.capture_span()   
-class DownloadFromSwarm():    
+
+#@elasticapm.capture_span()
+class DownloadFromSwarm():
     """Description:
-         
-        - tqdm requests get , from swarm 
-        
+
+        - tqdm requests get , from swarm
+
     Args:
-        
+
         - url:
             string
-            
+
         - file:
             string
-            
+
     Returns:
-         
+
         - filesize:
-             
+
             int
     """
     def __init__(self, url, file):
@@ -460,24 +459,24 @@ class DownloadFromSwarm():
 
 
 
-#@elasticapm.capture_span()    
+#@elasticapm.capture_span()
 class RequestIterator:
     """Description:
 
-        - Iterates over `chunk_size` chunks of the contents of a file, 
+        - Iterates over `chunk_size` chunks of the contents of a file,
         - provides a tqdm progress indicator.
     """
     def __init__(self, url, chunk_size=20480, **kwargs):
         header = {"host":swarm_domain
-        }        
+        }
         req = urllib.request.Request(url, headers=header)
         self.file_size = int(urllib.request.urlopen(req).info(
                 ).get('Content-Length', -1))
         self.first_byte = 0
         self.url = url
         header = {"host":swarm_domain,
-                  "Range": "bytes=%s-%s" % (self.first_byte, self.file_size)        
-        }           
+                  "Range": "bytes=%s-%s" % (self.first_byte, self.file_size)
+        }
 
         logger.debug('##### Copying %s #####',
                     str(header))
@@ -524,10 +523,10 @@ class RequestIterator:
 #@elasticapm.capture_span()
 def upload_file(endpoint, secret , key, file_name, bucket, object_name=None):
     """Description:
-        
+
         - Upload a file to an S3 bucket
 
-        
+
    :param file_name: File to upload
    :param bucket: Bucket to upload to
    :param object_name: S3 object name. If not specified file_name is used
@@ -536,7 +535,7 @@ def upload_file(endpoint, secret , key, file_name, bucket, object_name=None):
     # If S3 object_name was not specified, use file_name
     if object_name is None:
         object_name = file_name
-        
+
     session = boto3.session.Session()
     s3_client = session.client(
             service_name='s3',
@@ -594,10 +593,10 @@ class download_tofile(object):
             with open(self.file, 'wb') as f:
                 r.raw.decode_content = True
                 shutil.copyfileobj(r.raw, f)
-        return self.file 
+        return self.file
 
 
-    
+
 
 
 if __name__ == "__main__":

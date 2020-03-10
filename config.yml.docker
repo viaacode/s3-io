@@ -13,6 +13,7 @@ application:
       private_key_path: !ENV ${REMOTECURL_PRIV_KEY_PATH}
       user: !ENV ${REMOTECURL_USER}
       host: !ENV ${REMOTECURL_HOST}
+      passw: !ENV ${REMOTECURL_PASSW}
       domain_header: !ENV ${REMOTECURL_DOMAIN_HEADER}
     DownloadChunks:
       domain: !ENV ${DOWNLCHUNCKS_DOMAIN}

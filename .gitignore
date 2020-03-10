@@ -10,3 +10,4 @@ __pycache__
 s3io/known_hosts
 build/*
 dist/*
+.env

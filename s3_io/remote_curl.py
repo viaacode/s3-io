@@ -182,8 +182,8 @@ class RemoteCurl():
             self.host = config.app_cfg['RemoteCurl']['host']
         self.url = url
         self.dest_path = dest_path
-        self.keyfile = config.app_cfg['RemoteCurl']['private_key_path']
-        self.private_key = paramiko.RSAKey.from_private_key_file(self.keyfile)
+        #self.keyfile = config.app_cfg['RemoteCurl']['private_key_path']
+        #self.private_key = paramiko.RSAKey.from_private_key_file(self.keyfile)
         if headers:
             self.headers = headers
         if parts:
@@ -203,78 +203,79 @@ class RemoteCurl():
         fields = {}
         logger.info("Remote curl start from server %s using tempdir :%s:",
                     self.host,self.tmp_dir)
-        k = self.private_key#paramiko.RSAKey.from_private_key_file("/home/tina/.ssh/id_rsa")
-        if k:
-            remote_client = paramiko.SSHClient()
-            remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            remote_client.connect(self.host,
-                                  port=22,
-                                  username=self.user,)
-            cmd = "mkdir -p \"{}\" &&".format(self.tmp_dir)+\
-            "curl -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\n\" -L "+\
-            " {} ".format(self.headers) +\
-            " -s " + self.url +\
-            " -o \"{}\" ".format(self.dest_path)+\
-            " && ls {}; echo ###; echo ####;  echo SUCCESS || echo ERROR & exit 1".format(self.tmp_dir)
-            logger.info("Starting Remote CURL on %s: %s",
-                        self.host,
-                        str(cmd),
-                        fields=self.fields)
-            try:
-                _stdin, stdout, stderr = remote_client.exec_command(cmd)
-                out = stdout.readlines()
-                logger.info(str(out))
-                if 'ERROR\n' in str(out[0]):
-                    logger.error(str(stderr.readlines()),
-                                 exc_info=True)
-                result = str(out[1])
-                speed = str(out[0]).split(',')
-                fields = {'speed': speed[0],
-                          'status_code': speed[1],
-                          'filesize:': speed[2],
-                          'source_url': speed[3],
-                          'total_runtime': speed[4],
-                          'x-meemoo-request-id': self.request_id,
-                          'RESULT': 'FINISED'}
-                logger.debug('setting stats in fields.. speed: %s Bytes/s,\
-                             took: %s seconds',
-                             speed[0],
-                             speed[4],
-                             fields=fields)
-                if 'ERROR' in result:
-                    fields['RESULT'] = 'FAILED'
-                    fields['x-meemoo-request-id'] = self.request_id
-
-                    logger.error('ERROR fetching: %s', str(speed[3]),
-                                 exc_info=True,
-                                 fields=fields)
-                else:
-                    fields['RESULT'] = 'SUCCESS'
-                    fields['x-meemoo-request-id'] = self.request_id
-
-                    logger.info('result for fetching %s: %s ',
-                                str(speed[3]),
-                                str(result),
-                                fields=fields)
-                remote_client.close()
-            except IOError as e:
+        # k = self.private_key#paramiko.RSAKey.from_private_key_file("/home/tina/.ssh/id_rsa")
+        # if k:
+        remote_client = paramiko.SSHClient()
+        remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        remote_client.connect(self.host,
+                              port=22,
+                              username=self.user,
+                              password=config.app_cfg['RemoteCurl']['passw'])
+        cmd = "mkdir -p \"{}\" &&".format(self.tmp_dir)+\
+        "curl -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\n\" -L "+\
+        " {} ".format(self.headers) +\
+        " -s " + self.url +\
+        " -o \"{}\" ".format(self.dest_path)+\
+        " && ls {}; echo ###; echo ####;  echo SUCCESS || echo ERROR & exit 1".format(self.tmp_dir)
+        logger.info("Starting Remote CURL on %s: %s",
+                    self.host,
+                    str(cmd),
+                    fields=self.fields)
+        try:
+            _stdin, stdout, stderr = remote_client.exec_command(cmd)
+            out = stdout.readlines()
+            logger.info(str(out))
+            if 'ERROR\n' in str(out[0]):
+                logger.error(str(stderr.readlines()),
+                             exc_info=True)
+            result = str(out[1])
+            speed = str(out[0]).split(',')
+            fields = {'speed': speed[0],
+                      'status_code': speed[1],
+                      'filesize:': speed[2],
+                      'source_url': speed[3],
+                      'total_runtime': speed[4],
+                      'x-meemoo-request-id': self.request_id,
+                      'RESULT': 'FINISED'}
+            logger.debug('setting stats in fields.. speed: %s Bytes/s,\
+                         took: %s seconds',
+                         speed[0],
+                         speed[4],
+                         fields=fields)
+            if 'ERROR' in result:
                 fields['RESULT'] = 'FAILED'
                 fields['x-meemoo-request-id'] = self.request_id
-                logger.error("failed to fetch url:%s, ERROR: %s",
-                             self.url, str(e),
-                             fields=fields)
 
-            except ValueError as val_e:
-                fields['RESULT'] = 'FAILED'
-
-                logger.error(str(stdout.readlines()),
-                             str(stderr.readlines()),
-                             str(val_e),
+                logger.error('ERROR fetching: %s', str(speed[3]),
+                             exc_info=True,
                              fields=fields)
-            if self.parts:
-                return str(self.tmp_dir)
             else:
-                 return True
+                fields['RESULT'] = 'SUCCESS'
+                fields['x-meemoo-request-id'] = self.request_id
+
+                logger.info('result for fetching %s: %s ',
+                            str(speed[3]),
+                            str(result),
+                            fields=fields)
+            remote_client.close()
+        except IOError as e:
+            fields['RESULT'] = 'FAILED'
+            fields['x-meemoo-request-id'] = self.request_id
+            logger.error("failed to fetch url:%s, ERROR: %s",
+                         self.url, str(e),
+                         fields=fields)
+
+        except ValueError as val_e:
+            fields['RESULT'] = 'FAILED'
+
+            logger.error(str(stdout.readlines()),
+                         str(stderr.readlines()),
+                         str(val_e),
+                         fields=fields)
+        if self.parts:
+            return str(self.tmp_dir)
+        else:
+             return True
 
     def __call__(self):
         '''Run remote_get'''
@@ -298,8 +299,8 @@ class RemoteAssembleParts():
         if user is None:
             self.user = config.app_cfg['RemoteCurl']['user']
         # self.url=url
-        self.keyfile = config.app_cfg['RemoteCurl']['private_key_path']
-        self.private_key = paramiko.RSAKey.from_private_key_file(self.keyfile)
+        #self.keyfile = config.app_cfg['RemoteCurl']['private_key_path']
+        #self.private_key = paramiko.RSAKey.from_private_key_file(self.keyfile)
         self.request_id = request_id
         self.fields = {}
 
@@ -320,51 +321,53 @@ class RemoteAssembleParts():
              - not parsing stderr we return 0 on error
              string parse ERROR in stdout stream
         """
-        k = self.private_key
-        if k:
-            remote_client = paramiko.SSHClient()
-            remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            remote_client.connect(self.host,
-                                  port=22,
-                                  username=self.user,)
+        # k = self.private_key
+        # if k:
+        remote_client = paramiko.SSHClient()
+        remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        remote_client.connect(
+            self.host,
+            port=22,
+            username=self.user,
+            password=config.app_cfg['RemoteCurl']['passw'])
 
-            cmd = """cd {} &&
-            if [ -f "{}" ]; then echo ERROR;fi
-            for i in $(ls *part*);do cat "$i"  >> "{}";done;
-            cd .. &&
-            rm -rf "{}" &&
-            echo SUCCESS ||echo ERROR""".format(self.tmp_dir,
-                                                self.dest_path,
-                                                self.dest_path,
-                                                self.tmp_dir)
-            logger.info('Remote execute on %s:  %s',
-                        self.host,
-                        str(cmd.rstrip()))
-            try:
-                _stdin, stdout, _stderr = remote_client.exec_command(cmd)
-                out = stdout.readlines()
-                if 'ERROR\n' in out:
-                    self.fields['RESULT'] = 'FAILED'
-                    self.fields['x-meemoo-request-id'] = self.request_id
-                    logger.error(str(out),
-                                 exc_info=True,
-                                 fields=self.fields)
-                    raise IOError
-
-                else:
-                    self.fields['RESULT'] = 'SUCCESS'
-                    self.fields['x-meemoo-request-id'] = self.request_id
-                    logger.info('result for assemble %s: %s ',
-                                str(self.dest_path),
-                                str(out[0]).rstrip(),
-                                fields=self.fields)
-                remote_client.close()
-            except IOError as e:
-                logger.error("%s failed to fetch url:%s", str(e),
-                             self.dest_path,
+        cmd = """cd {} &&
+        if [ -f "{}" ]; then echo ERROR;fi
+        for i in $(ls *part*);do cat "$i"  >> "{}";done;
+        cd .. &&
+        rm -rf "{}" &&
+        echo SUCCESS ||echo ERROR""".format(self.tmp_dir,
+                                            self.dest_path,
+                                            self.dest_path,
+                                            self.tmp_dir)
+        logger.info('Remote execute on %s:  %s',
+                    self.host,
+                    str(cmd.rstrip()))
+        try:
+            _stdin, stdout, _stderr = remote_client.exec_command(cmd)
+            out = stdout.readlines()
+            if 'ERROR\n' in out:
+                self.fields['RESULT'] = 'FAILED'
+                self.fields['x-meemoo-request-id'] = self.request_id
+                logger.error(str(out),
+                             exc_info=True,
                              fields=self.fields)
-                raise
-            return True
+                raise IOError
+
+            else:
+                self.fields['RESULT'] = 'SUCCESS'
+                self.fields['x-meemoo-request-id'] = self.request_id
+                logger.info('result for assemble %s: %s ',
+                            str(self.dest_path),
+                            str(out[0]).rstrip(),
+                            fields=self.fields)
+            remote_client.close()
+        except IOError as e:
+            logger.error("%s failed to fetch url:%s", str(e),
+                         self.dest_path,
+                         fields=self.fields)
+            raise
+        return True
 
     def __call__(self):
         """Join the files"""
@@ -485,53 +488,54 @@ def remote_get(url,dest_path):
             - url : string
 
     """
-    k = paramiko.RSAKey.from_private_key_file(
-            config.app_cfg['RemoteCurl']['private_key_path'])
-    if k:
-        remote_client = paramiko.SSHClient()
-        remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        remote_client.connect(config.app_cfg['RemoteCurl']['host'],
-                              port=22,
-                              username=config.app_cfg['RemoteCurl']['user'],)
+    # k = paramiko.RSAKey.from_private_key_file(
+    #         config.app_cfg['RemoteCurl']['private_key_path'])
+    # if k:
+    remote_client = paramiko.SSHClient()
+    remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    remote_client.connect(config.app_cfg['RemoteCurl']['host'],
+                          port=22,
+                          username=config.app_cfg['RemoteCurl']['user'],
+                          password=config.app_cfg['RemoteCurl']['passw'])
 
-        cmd = "curl  -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\n\" -L " +\
-        url + ' -o ' + dest_path + " && echo SUCCESS || echo ERROR & exit 1"
-        try:
-            _stdin, stdout, stderr = remote_client.exec_command(cmd)
-            out = stdout.readlines()
-            if stderr is not None:
-                err = stderr.readlines()
-                logger.error(str(err))
-            result = str(out[1])
-            speed = str(out[0]).split(',')
-            fields = {'speed': speed[0],
-                      'status_code': speed[1],
-                      'filesize:': speed[2],
-                      'source_url': speed[3],
-                      'total_runtime': speed[4]}
-            logger.debug('Recording SPEED  CURL.. speed: %s kiB/s, took: %s',
-                         speed[0],
-                         speed[4],
+    cmd = "curl  -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\n\" -L " +\
+    url + ' -o ' + dest_path + " && echo SUCCESS || echo ERROR & exit 1"
+    try:
+        _stdin, stdout, stderr = remote_client.exec_command(cmd)
+        out = stdout.readlines()
+        if stderr is not None:
+            err = stderr.readlines()
+            logger.error(str(err))
+        result = str(out[1])
+        speed = str(out[0]).split(',')
+        fields = {'speed': speed[0],
+                  'status_code': speed[1],
+                  'filesize:': speed[2],
+                  'source_url': speed[3],
+                  'total_runtime': speed[4]}
+        logger.debug('Recording SPEED  CURL.. speed: %s kiB/s, took: %s',
+                     speed[0],
+                     speed[4],
+                     fields=fields)
+
+        if 'ERROR' in result:
+            fields['RESULT'] = 'FAILED'
+            logger.error('ERROR fetching: %s',
+                         str(speed[3]),
+                         exc_info=True,
                          fields=fields)
+            raise OSError
+        fields['RESULT'] = 'SUCCESS'
+        logger.info('result for fetching %s: %s ',
+                    str(speed[3]),
+                    str(result),
+                    fields=fields)
+        remote_client.close()
 
-            if 'ERROR' in result:
-                fields['RESULT'] = 'FAILED'
-                logger.error('ERROR fetching: %s',
-                             str(speed[3]),
-                             exc_info=True,
-                             fields=fields)
-                raise OSError
-            fields['RESULT'] = 'SUCCESS'
-            logger.info('result for fetching %s: %s ',
-                        str(speed[3]),
-                        str(result),
-                        fields=fields)
-            remote_client.close()
-
-        except IOError as e:
-            logger.error(str(e),
-                         exc_info=True)
-        return fields
+    except IOError as e:
+        logger.error(str(e),
+                     exc_info=True)
+    return fields
 
 
 def remote_ffprobe(mediafile, host=None, user=None):
@@ -541,14 +545,15 @@ def remote_ffprobe(mediafile, host=None, user=None):
         host = host[0]
     if user == None:
         user = config.app_cfg['RemoteCurl']['user']
-    k = paramiko.RSAKey.from_private_key_file(
-            config.app_cfg['RemoteCurl']['private_key_path'])
-    if k:
+    # k = paramiko.RSAKey.from_private_key_file(
+    #         config.app_cfg['RemoteCurl']['private_key_path'])
+    # if k:
         remote_client = paramiko.SSHClient()
         remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         remote_client.connect(host,
                               port=22,
                               username=user,
+                              password=config.app_cfg['RemoteCurl']['passw']
                               )
         cmd= """ffprobe -show_format -show_streams -print_format json {} """.format(mediafile)
         try:
