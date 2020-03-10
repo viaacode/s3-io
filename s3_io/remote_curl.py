@@ -179,7 +179,7 @@ class RemoteCurl():
         if user is None:
             self.user = config.app_cfg['RemoteCurl']['user']
         if host is None:
-            self.host = config.app_cfg['RemoteCurl']['host'] 
+            self.host = config.app_cfg['RemoteCurl']['host']
         self.url = url
         self.dest_path = dest_path
         self.keyfile = config.app_cfg['RemoteCurl']['private_key_path']
@@ -187,7 +187,7 @@ class RemoteCurl():
         if headers:
             self.headers = headers
         if parts:
-            self.parts=True 
+            self.parts=True
             _dir, f = os.path.split(self.dest_path)
             b, _e = os.path.splitext(f)
             b = os.path.basename(os.path.normpath(b))
@@ -201,7 +201,7 @@ class RemoteCurl():
     def _remote_get(self):
         """Remote download from swarm to local filesystem curl + ssh"""
         fields = {}
-        logger.info("Remote curl start from server %s using tempdir :%s:", 
+        logger.info("Remote curl start from server %s using tempdir :%s:",
                     self.host,self.tmp_dir)
         k = self.private_key#paramiko.RSAKey.from_private_key_file("/home/tina/.ssh/id_rsa")
         if k:
@@ -388,7 +388,7 @@ def remote_fetch(url,
          (defaults to 4)
 
          - download frorm url in parts and assemble to destpath
-         
+
          - the parts dir is returned by remoteCurl instance output
 
      Arguments:
@@ -403,13 +403,14 @@ def remote_fetch(url,
     if not url:
         logger.error("Please Enter some url to begin download.")
         raise IOError
-    host_header=config.app_cfg['RemoteCurl']['domain_header']
+    host_header = config.app_cfg['RemoteCurl']['domain_header']
     fields={'RESULT': 'SCHEDULED',
             'x-meemoo-request-id': request_id}
     sizeInBytes = requests.head(url,
                                 allow_redirects=True,
                                 headers={'host': host_header,
-                                         'Accept-Encoding': 'identity'}).headers.get('content-length', None)
+                                         'Accept-Encoding': 'identity'}
+                                ).headers.get('content-length', None)
     logger.info("%s bytes to download. url: %s",
            str(sizeInBytes),str(url), fields=fields)
     if not sizeInBytes:
@@ -417,19 +418,29 @@ def remote_fetch(url,
         raise requests.exceptions.HTTPError
     ranges = buildRange(int(sizeInBytes), splitBy)
     def downloadChunk(idx, irange):
-        host_header=config.app_cfg['RemoteCurl']['domain_header']
+        """
+        Description:
+            - RemoteCurl returns tmp_dir as string if parts is True,
+              passes this to assamble (paramiko)
 
-        curl_headers="-H 'host: {}'".format(host_header)+\
+            - Start 4 download threads
+
+            - Join the files (remote command paramiko)
+
+        """
+        host_header = config.app_cfg['RemoteCurl']['domain_header']
+
+        curl_headers = "-H 'host: {}'".format(host_header) + \
                        " -H 'range: bytes={}' -r {}".format(irange, irange)
         logger.info(str(curl_headers))
         global tmp_dir
         tmp_dir = RemoteCurl(url=url,
-                   dest_path=dest_path + '_part_' + str(idx),
-                   request_id=request_id,
-                   parts=True,
-                   user=user,
-                   host=host,
-                   headers=curl_headers)()
+                             dest_path=dest_path + '_part_' + str(idx),
+                             request_id=request_id,
+                             parts=True,
+                             user=user,
+                             host=host,
+                             headers=curl_headers)()
     # create one downloading thread per chunk
     downloaders = [
         threading.Thread(
@@ -446,8 +457,7 @@ def remote_fetch(url,
     # join the Threads!
     for th in downloaders:
         th.join()
-
-    ## Assemble PARTS
+    # Assemble PARTS
     RemoteAssembleParts(dest_path=dest_path,
                         tmp_dir=tmp_dir)()
     fields = {'RESULT': 'SUCCESS',
@@ -455,7 +465,10 @@ def remote_fetch(url,
     logger.info('Remote curl in parts and assemble for %s complete',
                 dest_path,
                 fields=fields)
-    return True
+    res_out = {'log_fields': fields,
+               url: url,
+               dest_path: dest_path}
+    return res_out
 
 
 def remote_get(url,dest_path):

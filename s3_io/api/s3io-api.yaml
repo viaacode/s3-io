@@ -1,0 +1,158 @@
+openapi: "3.0.0"
+
+info:
+  title: swarm s3io
+  version: "1.0"
+servers:
+  - url: http://localhost:9090/v1.0
+
+paths:
+  /remote_fetch/{task_id}:
+    get:
+      summary: Get task result
+      description: Info about celery task id
+      operationId: s3_worker_api.info
+      responses:
+        200:
+          description: task result
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'FINISHED'
+      parameters:
+        - name: task_id
+          in: path
+          description: check_req_id
+          required: true
+          schema:
+            type: string
+            example: "6834be65-95af-41be-b1b8-68174f5068fe"
+        - name: state
+          in: query
+          description: the task state
+          schema:
+            type: boolean
+            example: true
+            
+  /remote_fetch/:
+    post:
+      operationId: s3_worker_api.s3_to_remote
+      summary: Create or update a pet
+
+      responses:
+        '200':
+          description: Job scheduled
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: remotefetch
+              $ref: '#/components/schemas/Remotefetch'
+
+      parameters:
+        - in: header
+          name: x-meemoo-request-id
+          schema:
+            type: string
+            format: uuid
+          required: true
+          
+  /s3_to_ftp/:
+    post:
+      operationId: s3_worker_api.s3_to_ftp
+      summary: Create or update a pet
+
+      responses:
+        '200':
+          description: job scheduled
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: s3toftp
+              $ref: '#/components/schemas/s3toftp'
+
+      parameters:
+        - in: header
+          name: x-meemoo-request-id
+          schema:
+            type: string
+            format: uuid
+          required: true
+
+
+components:
+  schemas:
+    Remotefetch:
+      type: object
+      required:
+        - source
+        - destination
+      properties:
+        source:
+          type: object
+          properties:
+            domain:
+              type: object
+              properties:
+                name:
+                  type: string
+            bucket:
+              type: object
+              properties:
+                name:
+                  type: string   
+            object:
+              type: object
+              properties:
+                key:
+                  type: string                                 
+          description: source
+        destination:
+          type: object
+          properties:
+            path:
+              type: string
+            user:
+              type: string
+            host:
+              type: string   
+    s3toftp:
+      type: object
+      required:
+        - source
+        - destination
+      properties:
+        source:
+          type: object
+          properties:
+            domain:
+              type: object
+              properties:
+                name:
+                  type: string
+            bucket:
+              type: object
+              properties:
+                name:
+                  type: string   
+            object:
+              type: object
+              properties:
+                key:
+                  type: string                                 
+          description: source
+        destination:
+          type: object
+          properties:
+            path:
+              type: string
+            user:
+              type: string
+            host:
+              type: string
+            password:
+              type: string                  

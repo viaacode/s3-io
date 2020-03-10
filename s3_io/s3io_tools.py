@@ -22,16 +22,13 @@ import uuid
 import json
 from urllib3.util.retry import Retry
 from urllib.parse import unquote
-import configparser
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
 
-config = ConfigParser(config_from_env=False)
-config_ = configparser.ConfigParser()
-config_.read('/etc/viaa-workers/config.ini')
-swarmurl = config_['castor']['swarmurl']
+config = ConfigParser()
+swarmurl = config.app_cfg['castor']['swarmurl']
 
-logger = logging.get_logger('s3io.app', config)
+logger = logging.get_logger('s3io', config)
 
 
 class SwarmIo():
@@ -89,7 +86,7 @@ class SwarmIo():
         logger.info("requesting object key info for: %s", self.key,
                     fields=self.log_fields)
         swarm_url = 'http://' + swarmurl
-        swarm_domain=config_['castor']['domain']
+        swarm_domain = swarm_domain
         self.headers={'host':swarm_domain}
         self.s = requests.Session()
         retries = Retry(total=5,
@@ -374,7 +371,7 @@ class SwarmS3Client():
                                Metadata = self.metadata, 
                                MetadataDirective='REPLACE')
         except ClientError as metadata_update_error:
-             logger.error(metadata_update_error)
+            logger.error(metadata_update_error)
     
        # logger.info(m)
 
@@ -411,23 +408,28 @@ class IteratorToStream(io.RawIOBase):
 #@elasticapm.capture_span()   
 class DownloadFromSwarm():    
     """Description:
+         
         - tqdm requests get , from swarm 
         
     Args:
         
         - url:
             string
+            
         - file:
             string
+            
     Returns:
+         
         - filesize:
-            int"""
+             
+            int
+    """
     def __init__(self, url, file):
         self.url = url
         self.file = file
 
     def __call__(self):
-        swarm_domain=config_['castor']['domain']
         header = {"host":swarm_domain}
         file_size = int(
                 requests.head(self.url,
@@ -466,7 +468,6 @@ class RequestIterator:
         - provides a tqdm progress indicator.
     """
     def __init__(self, url, chunk_size=20480, **kwargs):
-        swarm_domain=config_['castor']['domain']
         header = {"host":swarm_domain
         }        
         req = urllib.request.Request(url, headers=header)

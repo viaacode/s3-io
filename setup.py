@@ -9,7 +9,7 @@ Created on Fri Jan 8 09:07:08 2018
 from setuptools import setup
 
 setup(name='s3_io',
-      version='1.0.9',
+      version='1.1.1',
       description='VIAA S3 Events',
       long_description='Publiseh s3 event to rabbitmq.',
       classifiers=[
@@ -24,8 +24,8 @@ setup(name='s3_io',
       author_email='tina.cochet@viaa.be',
       license='MIT 2019 VIAA',
       packages=['s3_io'],
-      package_dir={'s3_io':'s3_io'}, # the one line where all the magic happens
-        package_data={
+      package_dir={'s3_io': 's3_io'},
+      package_data={
         's3_io': ['_build/*'],
       },
       install_requires=[
@@ -39,8 +39,13 @@ setup(name='s3_io',
               'celery==4.3.0',
               'tqdm==4.36.1',
               'mako',
+              'vine==1.3.0',
               'markdown >= 3.0',
-              'viaa-chassis @git+https://github.com/viaacode/chassis.py.git@master#egg=viaa-chasis-0.0.4',
+              'colorama',
+              'paramiko==2.7.1',
+              'elastic-apm==5.4.3',
+              'elasticsearch==6.4.0',
+#              'viaa-chassis @git+https://github.com/viaacode/chassis.py.git#egg=chassis-0.4'
       ],
               
       # scripts=['./scripts/s3_io-daemon',

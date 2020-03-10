@@ -18,7 +18,6 @@ Created on Mon Sep 23 11:58:05 2019
 import sys
 import threading
 import atexit
-import configparser
 from s3_io.event_consumer import __main__ as Consume
 from s3_io.s3io_tasks import app
 from viaa.observability import logging
@@ -27,15 +26,17 @@ from python_logging_rabbitmq import RabbitMQHandlerOneWay
 from celery.signals import setup_logging, task_postrun, task_prerun
 from celery.result import AsyncResult
 config = ConfigParser()
-
-config_ = configparser.ConfigParser()
-config_.read('/etc/viaa-workers/config.ini')
-rabbit = RabbitMQHandlerOneWay(host=config_['RabPub']['host'],
-                               username=config_['RabPub']['user'],
-                               password=config_['RabPub']['passw'],
-                               fields_under_root=True,
-                               port=5672)
+import pprint
+pprint.pprint(config.config['test'])
+rabbit = RabbitMQHandlerOneWay(
+     host=config.config['logging']['RabPub']['host'],
+     username=config.config['logging']['RabPub']['user'],
+     password=config.config['logging']['RabPub']['passw'],
+     fields_under_root=True,
+     port=5672)
 logger = logging.get_logger('s3io', config)
+
+
 
 
 def add_rabbithandler():
@@ -46,22 +47,16 @@ def add_rabbithandler():
 
 
 @task_postrun.connect
-def log_task_complete(sender, task_id, task, args, kwargs, **_kwargs):
+def log_task_complete(sender, task_id, task, args,  **kwargs):
     """Runs on task complete """
-    try:
-        # add_rabbithandler()
-        result = AsyncResult(task_id).result
-        if result is None:
-            result = 'NO_RESULT_FOUND'
-    except Exception as e:
-        logger.error(str(e),
-                     exc_info=True)
-
-
+    # add_rabbithandler()
+    result = AsyncResult(task_id).result
+    if result is None:
+        result = 'NO_RESULT_FOUND'
 
 
 @task_prerun.connect
-def log_task_Started(sender, task_id, task, args, kwargs, **_kwargs):
+def log_task_Started(sender, task_id, task, args, **kwargs):
     """RUNS ON TASK START"""
     try:
         add_rabbithandler()
@@ -84,7 +79,7 @@ def log_task_Started(sender, task_id, task, args, kwargs, **_kwargs):
 def on_celery_setup_logging(**kwargs):
     """tO MESS WITH THE LOGGER"""
     pass
-
+    # return True
 
 def quit_gracefully(t=None):
     logger.warning("######### sending app.control.shutdown() DISABLED########")
@@ -97,12 +92,11 @@ def quit_gracefully(t=None):
         try:
             logger.warning("KILLING thread!")
             t.join()
-            sys.exit(0)
+          #  sys.exit(0)
         except Exception as e:
             logger.error(str(e),
                          exc_info=True)
-    else:
-        sys.exit(0)
+
 
 
 def __event_consumer__():

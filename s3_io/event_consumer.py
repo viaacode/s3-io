@@ -13,20 +13,20 @@ Created on Fri Jan 10 15:40:19 2020
 @author: tina
 """
 from sys import exit
-import pika
 import json
 import configparser
-from  json import JSONDecodeError
+from json import JSONDecodeError
+import pika
 from retry import retry
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
 from s3_io.create_url_to_filesystem_task import process
 config = ConfigParser()
 config_ = configparser.ConfigParser()
-config_.read('/etc/viaa-workers/config.ini')
-swarmurl = config_['castor']['swarmurl']
+# config_.read('/etc/viaa-workers/config.ini')
+# swarmurl = config_['castor']['swarmurl']
 logger = logging.get_logger('s3io', config)
-
+swarmurl = config.app_cfg['castor']['swarmurl']
 
 @retry(pika.exceptions.AMQPConnectionError,
        delay=5,
@@ -42,7 +42,7 @@ def __main__():
 
          - prefetch 1 msg:
 
-         - queue : hardcodes atm to : s3_to_remotefs
+         - queue : incoming queue : s3_to_remotefs(might move to confuig)
 
     Args:
 
@@ -51,21 +51,25 @@ def __main__():
          - headers: "x-meemoo-request-id" required!
 
     """
-    url = config_['RabCon']['uri']
+    url = config.app_cfg['RabCon']['uri']
     params = pika.URLParameters(url)
     connection = pika.BlockingConnection(params)
     channel = connection.channel()  # start a channel
-    q = 's3_to_remotefs'
+    incoming_queue = 's3_to_remotefs'
     channel.basic_qos(prefetch_count=1)
-    channel.queue_declare(queue=q, durable=True)
+    channel.queue_declare(queue=incoming_queue, durable=True)
 
 
 
     def callback(ch, method, properties, body):
-        """
-        the actual callback on message
-         - Decodes rhe msg from json to dict
-         - pass dict it to process function which starts a async job
+        """Description:
+
+            The actual callback on message
+
+          - Decodes rhe msg from json to dict
+
+          - pass dict it to process function which starts a async job
+
         """
 
         # Process the body
@@ -79,9 +83,9 @@ def __main__():
             logger.info('ACK valide msg x-meemoo-request-id: %s',
                         request_id,
                         fields=log_fields)
-        except KeyError as e:
+        except KeyError as k_e:
             logger.error('missing key: %s',
-                         str(e), exc_info=True)
+                         str(k_e), exc_info=True)
             ch.basic_ack(delivery_tag=method.delivery_tag)
         except JSONDecodeError as j_e:
             logger.error('Input Json error: %s',
@@ -92,7 +96,7 @@ def __main__():
             exit(1)
 
     try:
-        channel.basic_consume(q, callback, consumer_tag='s3tofilesystem')
+        channel.basic_consume(incoming_queue, callback, consumer_tag='s3tofilesystem')
         # start consuming (blocks)
         channel.start_consuming()
 
@@ -101,7 +105,7 @@ def __main__():
         channel.stop_consuming()
         channel.close()
         connection.close()
-        exit
+        exit(0)
 
 
 if __name__ == "__main__":
