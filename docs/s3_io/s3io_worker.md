@@ -25,7 +25,7 @@ Created on Mon Sep 23 11:58:05 2019
 
 ## add_rabbithandler
 
-[[find in source code]](../../s3_io/s3io_worker.py#L41)
+[[find in source code]](../../s3_io/s3io_worker.py#L42)
 
 ```python
 def add_rabbithandler():
@@ -35,29 +35,29 @@ ADD a log handle to get task results in log
 
 ## log_task_Started
 
-[[find in source code]](../../s3_io/s3io_worker.py#L63)
+[[find in source code]](../../s3_io/s3io_worker.py#L58)
 
 ```python
 @task_prerun.connect
-def log_task_Started(sender, task_id, task, args, kwargs, **_kwargs):
+def log_task_Started(sender, task_id, task, args, **kwargs):
 ```
 
 RUNS ON TASK START
 
 ## log_task_complete
 
-[[find in source code]](../../s3_io/s3io_worker.py#L48)
+[[find in source code]](../../s3_io/s3io_worker.py#L49)
 
 ```python
 @task_postrun.connect
-def log_task_complete(sender, task_id, task, args, kwargs, **_kwargs):
+def log_task_complete(sender, task_id, task, args, **kwargs):
 ```
 
 Runs on task complete
 
 ## on_celery_setup_logging
 
-[[find in source code]](../../s3_io/s3io_worker.py#L83)
+[[find in source code]](../../s3_io/s3io_worker.py#L78)
 
 ```python
 @setup_logging.connect
@@ -68,7 +68,7 @@ tO MESS WITH THE LOGGER
 
 ## quit_gracefully
 
-[[find in source code]](../../s3_io/s3io_worker.py#L89)
+[[find in source code]](../../s3_io/s3io_worker.py#L84)
 
 ```python
 def quit_gracefully(t=None):
@@ -76,7 +76,7 @@ def quit_gracefully(t=None):
 
 ## worker
 
-[[find in source code]](../../s3_io/s3io_worker.py#L121)
+[[find in source code]](../../s3_io/s3io_worker.py#L115)
 
 ```python
 def worker():

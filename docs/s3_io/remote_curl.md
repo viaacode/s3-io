@@ -31,7 +31,7 @@ r=RemoteCurl(url="http://10.50.152.194:80/tests3vents/0k2699098k-left.mp4", dest
 
 ## RemoteAssembleParts
 
-[[find in source code]](../../s3_io/remote_curl.py#L284)
+[[find in source code]](../../s3_io/remote_curl.py#L285)
 
 ```python
 class RemoteAssembleParts():
@@ -48,7 +48,7 @@ Put the shit togetter
 
 ### RemoteAssembleParts().\_\_call\_\_
 
-[[find in source code]](../../s3_io/remote_curl.py#L369)
+[[find in source code]](../../s3_io/remote_curl.py#L372)
 
 ```python
 def __call__():
@@ -87,7 +87,7 @@ class RemoteCurl():
 
 ### RemoteCurl().\_\_call\_\_
 
-[[find in source code]](../../s3_io/remote_curl.py#L279)
+[[find in source code]](../../s3_io/remote_curl.py#L280)
 
 ```python
 def __call__():
@@ -144,7 +144,7 @@ Download url in parts and join (locally)
 
 ## remote_fetch
 
-[[find in source code]](../../s3_io/remote_curl.py#L375)
+[[find in source code]](../../s3_io/remote_curl.py#L378)
 
 ```python
 @timeit
@@ -181,7 +181,7 @@ Description:
 
 ## remote_ffprobe
 
-[[find in source code]](../../s3_io/remote_curl.py#L524)
+[[find in source code]](../../s3_io/remote_curl.py#L541)
 
 ```python
 def remote_ffprobe(mediafile, host=None, user=None):
@@ -191,7 +191,7 @@ Runs ffprobe on remote host
 
 ## remote_get
 
-[[find in source code]](../../s3_io/remote_curl.py#L461)
+[[find in source code]](../../s3_io/remote_curl.py#L477)
 
 ```python
 def remote_get(url, dest_path):
