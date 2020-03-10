@@ -19,7 +19,6 @@ app.config_from_object(celeryconfig)
 config = ConfigParser()
 logger = logging.get_logger('s3io', config)
 app.config_from_object(celeryconfig)
-
 app.conf.task_queues = (Queue('s3io',
                               Exchange('py-worker-s3io'),
                               routing_key='s3io'),)
@@ -27,7 +26,6 @@ app.conf.task_default_queue = 's3io'
 app.conf.task_default_exchange_type = 'direct'
 app.conf.task_default_routing_key = 's3io'
 config_ = configparser.ConfigParser()
-
 user = config.app_cfg['S3_TO_FTP']['ftpuser']
 passwd = config.app_cfg['S3_TO_FTP']['ftppassword']
 server = config.app_cfg['S3_TO_FTP']['ftpserver']
@@ -108,7 +106,6 @@ def s3_to_ftp(self, **body):
     """
     logger.info(body)
     dest_path = body['body']['dest_path']
-    #body=body['body']['Records'][0]
     logger.info('prcessing %s for object_key %s',
                 dest_path,
                 body['s3']['object']['key'])

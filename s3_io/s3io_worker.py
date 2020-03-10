@@ -25,9 +25,8 @@ from viaa.configuration import ConfigParser
 from python_logging_rabbitmq import RabbitMQHandlerOneWay
 from celery.signals import setup_logging, task_postrun, task_prerun
 from celery.result import AsyncResult
+
 config = ConfigParser()
-import pprint
-pprint.pprint(config.config['test'])
 rabbit = RabbitMQHandlerOneWay(
      host=config.config['logging']['RabPub']['host'],
      username=config.config['logging']['RabPub']['user'],
@@ -35,8 +34,6 @@ rabbit = RabbitMQHandlerOneWay(
      fields_under_root=True,
      port=5672)
 logger = logging.get_logger('s3io', config)
-
-
 
 
 def add_rabbithandler():
@@ -84,7 +81,6 @@ def on_celery_setup_logging(**kwargs):
 def quit_gracefully(t=None):
     logger.warning("######### sending app.control.shutdown() DISABLED########")
     # a=app.control.shutdown()
-    # print(a)
     a = 'ERROR'
     # worker_process_shutdown
     logger.warning('######### Bye, this is it i am Quiting ######### %s', a)

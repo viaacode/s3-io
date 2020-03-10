@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jan 10 15:40:19 2020
-    Description:
 
-         - queue : hardcodes atm to : s3_to_remotefs
+Description:
 
-    Args:
-         - body: json
-         - headers: "x-meemoo-request-id" required!
+    - queue : hardcodes atm to : s3_to_remotefs
+
+Args:
+
+    - body: json
+
+    - headers: "x-meemoo-request-id" required!
 
 @author: tina
 """
@@ -62,7 +65,8 @@ def __main__():
 
 
     def callback(ch, method, properties, body):
-        """Description:
+        """
+        Description:
 
             The actual callback on message
 

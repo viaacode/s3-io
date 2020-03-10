@@ -16,13 +16,11 @@ r=RemoteCurl(url="http://10.50.152.194:80/tests3vents/0k2699098k-left.mp4", dest
 """
 import os
 import threading
-# from pymemcache.client import base
 from functools import update_wrapper
 import paramiko
 import time
 import requests
 import json
-#import uuid
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
 from json import JSONDecodeError
@@ -88,11 +86,11 @@ def download_in_parts(url=None, dest_path=None, splitBy=4, ):
     hostname = u.hostname
     logger.info('hostname: %s', hostname)
     sizeInBytes = requests.head(
-         url,
-         allow_redirects=True,
-         headers = {'host': 's3-qas.do.viaa.be',
-                    'Accept-Encoding': 'identity'}).headers.get(
-                    'content-length', None)
+        url,
+        allow_redirects=True,
+        headers={'host': 's3-qas.do.viaa.be',
+                 'Accept-Encoding': 'identity'}).headers.get(
+                 'content-length', None)
     logger.debug("%s bytes to download. from url: %s",
            str(sizeInBytes), url)
     if not sizeInBytes:
@@ -101,8 +99,8 @@ def download_in_parts(url=None, dest_path=None, splitBy=4, ):
 
     def downloadChunk(idx, irange):
 
-        headers= {"host": "s3-qas.do.viaa.be",
-                  "Range":'bytes={}'.format(irange)}
+        headers = {"host": "s3-qas.do.viaa.be",
+                  "Range": 'bytes={}'.format(irange)}
         logger.info(str(headers))
         req = requests.get(url,
                            headers=headers,
@@ -131,7 +129,6 @@ def download_in_parts(url=None, dest_path=None, splitBy=4, ):
     if os.path.exists(os.path.split(dest_path)[0]):
         os.remove(dest_path)
     # reassemble file in correct order
-
     logger.info("Finished Writing %s fileparts ", str(splitBy))
     for i in range(0, len(ranges)):
         out_data = b''
@@ -166,7 +163,6 @@ class RemoteCurl():
                  headers=None,
                  parts=False,
                  request_id=None):
-         # removed , after host
         self.host = host,
         self.request_id = request_id
         self.fields = {"x-meemoo-request-id": self.request_id,
@@ -174,7 +170,7 @@ class RemoteCurl():
         if host is None:
             self.host = config.app_cfg['RemoteCurl']['host']
         else:
-             self.host = host
+            self.host = host
         self.user = user
         if user is None:
             self.user = config.app_cfg['RemoteCurl']['user']
@@ -182,16 +178,13 @@ class RemoteCurl():
             self.host = config.app_cfg['RemoteCurl']['host']
         self.url = url
         self.dest_path = dest_path
-        #self.keyfile = config.app_cfg['RemoteCurl']['private_key_path']
-        #self.private_key = paramiko.RSAKey.from_private_key_file(self.keyfile)
         if headers:
             self.headers = headers
         if parts:
-            self.parts=True
+            self.parts = True
             _dir, f = os.path.split(self.dest_path)
             b, _e = os.path.splitext(f)
             b = os.path.basename(os.path.normpath(b))
-            #self.tmp_dir = self.tmp_dir + '/work/' + b.rstrip()
             self.tmp_dir = _dir + "/." +  b
             self.dest_path = os.path.join(self.tmp_dir, f)
         else:
@@ -202,9 +195,8 @@ class RemoteCurl():
         """Remote download from swarm to local filesystem curl + ssh"""
         fields = {}
         logger.info("Remote curl start from server %s using tempdir :%s:",
-                    self.host,self.tmp_dir)
-        # k = self.private_key#paramiko.RSAKey.from_private_key_file("/home/tina/.ssh/id_rsa")
-        # if k:
+                    self.host, self.tmp_dir)
+
         remote_client = paramiko.SSHClient()
         remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         remote_client.connect(self.host,
@@ -275,7 +267,7 @@ class RemoteCurl():
         if self.parts:
             return str(self.tmp_dir)
         else:
-             return True
+            return True
 
     def __call__(self):
         '''Run remote_get'''
@@ -298,9 +290,7 @@ class RemoteAssembleParts():
         self.user = user,
         if user is None:
             self.user = config.app_cfg['RemoteCurl']['user']
-        # self.url=url
-        #self.keyfile = config.app_cfg['RemoteCurl']['private_key_path']
-        #self.private_key = paramiko.RSAKey.from_private_key_file(self.keyfile)
+
         self.request_id = request_id
         self.fields = {}
 
@@ -407,17 +397,17 @@ def remote_fetch(url,
         logger.error("Please Enter some url to begin download.")
         raise IOError
     host_header = config.app_cfg['RemoteCurl']['domain_header']
-    fields={'RESULT': 'SCHEDULED',
-            'x-meemoo-request-id': request_id}
+    fields = {'RESULT': 'SCHEDULED',
+              'x-meemoo-request-id': request_id}
     sizeInBytes = requests.head(url,
                                 allow_redirects=True,
                                 headers={'host': host_header,
                                          'Accept-Encoding': 'identity'}
                                 ).headers.get('content-length', None)
     logger.info("%s bytes to download. url: %s",
-           str(sizeInBytes),str(url), fields=fields)
+                str(sizeInBytes), str(url), fields=fields)
     if not sizeInBytes:
-        logger.error( "Size cannot be determined url: %s.", url, fields=fields)
+        logger.error("Size cannot be determined url: %s.", url, fields=fields)
         raise requests.exceptions.HTTPError
     ranges = buildRange(int(sizeInBytes), splitBy)
     def downloadChunk(idx, irange):
@@ -474,7 +464,7 @@ def remote_fetch(url,
     return res_out
 
 
-def remote_get(url,dest_path):
+def remote_get(url, dest_path):
     """Description:
 
          - NOT USED atm
@@ -488,9 +478,6 @@ def remote_get(url,dest_path):
             - url : string
 
     """
-    # k = paramiko.RSAKey.from_private_key_file(
-    #         config.app_cfg['RemoteCurl']['private_key_path'])
-    # if k:
     remote_client = paramiko.SSHClient()
     remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     remote_client.connect(config.app_cfg['RemoteCurl']['host'],
@@ -545,54 +532,51 @@ def remote_ffprobe(mediafile, host=None, user=None):
         host = host[0]
     if user == None:
         user = config.app_cfg['RemoteCurl']['user']
-    # k = paramiko.RSAKey.from_private_key_file(
-    #         config.app_cfg['RemoteCurl']['private_key_path'])
-    # if k:
-        remote_client = paramiko.SSHClient()
-        remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        remote_client.connect(host,
-                              port=22,
-                              username=user,
-                              password=config.app_cfg['RemoteCurl']['passw']
-                              )
-        cmd= """ffprobe -show_format -show_streams -print_format json {} """.format(mediafile)
-        try:
-            _stdin, stdout, stderr = remote_client.exec_command(cmd)
 
-            out = stdout.readlines()
-            o = list(map(lambda x: x.strip(), out))
-            o = ''.join(out)
-            p = json.loads(o)
-            p['RESULT'] = 'SUCCESS'
-            o = json.loads(str(o))
-            remote_client.close()
-            logger.info('ffprobed! %s ',
-                        p["format"]["filename"],
-                        fields=p)
+    remote_client = paramiko.SSHClient()
+    remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    remote_client.connect(host,
+                          port=22,
+                          username=user,
+                          password=config.app_cfg['RemoteCurl']['passw']
+                          )
+    cmd = """ffprobe -show_format -show_streams -print_format json {} """.format(mediafile)
+    try:
+        _stdin, stdout, stderr = remote_client.exec_command(cmd)
 
-            return o
-        except JSONDecodeError:
-            out = stderr.readlines()
-            o = ''.join(out)
-            p = {}
-            p['RESULT'] = 'FAILED'
-            logger.error('ffprobed FAILED! %s ',
-                         str(o).strip(),
-                         fields=p)
-            remote_client.close()
-            logger.error(str(out),
-                         exc_info=True)
-            raise IOError
+        out = stdout.readlines()
+        o = list(map(lambda x: x.strip(), out))
+        o = ''.join(out)
+        p = json.loads(o)
+        p['RESULT'] = 'SUCCESS'
+        o = json.loads(str(o))
+        remote_client.close()
+        logger.info('ffprobed! %s ',
+                    p["format"]["filename"],
+                    fields=p)
 
-        except KeyError:
-            out = stderr.readlines()
-            o = ''.join(out)
-            p = {}
-            p['RESULT'] = 'FAILED'
-            logger.error('ffprobed FAILED! %s ',
-                         str(o).strip(),
-                         fields=p)
-            remote_client.close()
-            logger.error(str(out), exc_info=True)
-            raise IOError
+        return o
+    except JSONDecodeError:
+        out = stderr.readlines()
+        o = ''.join(out)
+        p = {}
+        p['RESULT'] = 'FAILED'
+        logger.error('ffprobed FAILED! %s ',
+                     str(o).strip(),
+                     fields=p)
+        remote_client.close()
+        logger.error(str(out),
+                     exc_info=True)
+        raise IOError
 
+    except KeyError:
+        out = stderr.readlines()
+        o = ''.join(out)
+        p = {}
+        p['RESULT'] = 'FAILED'
+        logger.error('ffprobed FAILED! %s ',
+                     str(o).strip(),
+                     fields=p)
+        remote_client.close()
+        logger.error(str(out), exc_info=True)
+        raise IOError

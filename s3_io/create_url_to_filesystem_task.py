@@ -2,6 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar  3 14:12:09 2020
+
+    - Validate incoming message and make a celry job to transfer a file from
+    viaa swrm s3 to remote host
+
+    - Uses celery signature:
+
+        s3_io.s3io_tasks.swarm_to_remote.s(body=msg)
+
 0k2699098k-left.mp4
 @author: tina
 """
@@ -38,7 +46,7 @@ def validate_input(msg):
 
          - Basic validation of a message
     """
-    
+
     request_id = msg["x-meemoo-request-id"]
     key = msg['source']['object']['key']
     log_fields = {'x-meemoo-request-id': request_id}
