@@ -8,18 +8,29 @@ Created on Sat Mar  7 13:38:51 2020
     - [remote_fetch_result](#remote_fetch_result)
 
 Discription:
-    - Function to get the async result from the fxp celery result backend
-    - Args:
-        - task_id: Celery task uuid (the one you get after the service call)
-        - state:
-            - True for result status outcome
-            - False for the result (in this case the original message)
+
+- Function to get the async result from the fxp celery result backend
+
+- Args:
+
+- task_id: Celery task uuid (the one you get after the service call)
+
+- state:
+
+- True for result status outcome
+
+- False for the result (in this case the original message)
+
+#### Examples
+
+```remote_fetch_result(task_id='6834be65-95af-41be-b1b8-68174f5068fe',
+state=False)```
 
 @author: tina
 
 ## remote_fetch_result
 
-[[find in source code]](../../s3_io/task_info.py#L24)
+[[find in source code]](../../s3_io/task_info.py#L35)
 
 ```python
 def remote_fetch_result(task_id, state=False):
