@@ -27,7 +27,7 @@ from viaa.configuration import ConfigParser
 
 config = ConfigParser()
 swarmurl = config.app_cfg['castor']['swarmurl']
-swarm_domain = config.app_cfg['castor']['swarmdomain']
+swarm_domain = config.app_cfg['castor']['domain']
 logger = logging.get_logger('s3io', config)
 
 
@@ -233,7 +233,7 @@ class SwarmS3Client():
                 service_name='s3',
                 aws_access_key_id = self.key,
                 aws_secret_access_key = self.secret,
-                endpoint_url=self.endpoint)
+                endpoint_url='http://' + self.endpoint)
 
     def to_file(self):
         """Description:
@@ -259,17 +259,18 @@ class SwarmS3Client():
             - progress:Boolean:
 
                     - Default False
+
                     - show tqdm progress bar if True
         """
         self.progress = progress
         url = self.signed_url()
-        ftp = ftplib.FTP(self.ftp_host)
+        ftp_connector= ftplib.FTP(self.ftp_host,
+                                  self.to_ftp_user,self.to_ftp_password)
+        ftp_connector.encoding = 'utf-8'  # force encoding utf-8
         destpath = self.to_ftp_path
         logger.info('Logging in with %s',
                     self.to_ftp_user)
-        ftp.login(self.to_ftp_user,
-                  self.to_ftp_password)
-        ftp.set_pasv(True)
+        ftp_connector.set_pasv(True)
         logger.info('streaming url: %s', url)
         logger.debug(self.progress)
         if self.progress:
@@ -278,21 +279,21 @@ class SwarmS3Client():
         else:
             req = RequestIterator(url).as_stream()
         logger.info('FTP upload Starting ...')
-        ftp.storbinary('STOR %s' % (destpath,), req)
+        ftp_connector.storbinary('STOR %s' % (destpath,), req)
         logger.info('FTP upload Finished for: %s ',
                     destpath)
-
         return destpath
 
-    def signed_url(self):
 
+    def signed_url(self):
+        """the signed url to download"""
         url = self.client.generate_presigned_url(
                 'get_object', {'Bucket': self.bucket,
                                'Key': self.obj})
         return url
 
     def get_metadata(self):
-
+        """Fetch metadata look for content in Metadata"""
         k = self.client.head_object(Bucket = self.bucket, Key = self.obj)
         if 'Metadata' in k:
             k = k["Metadata"]

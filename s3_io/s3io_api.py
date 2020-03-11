@@ -13,27 +13,33 @@ from flask import request, Flask
 from s3_io.create_url_to_filesystem_task import process
 from s3_io.task_info import remote_fetch_result
 from s3_io.s3io_tools import SwarmS3Client
+from viaa.observability import logging
+from viaa.configuration import ConfigParser
 
-LOGGER = logging.getLogger('s3io')
+config = ConfigParser()
+logger = logging.get_logger('s3io', config)
+
+
+logger = logging.get_logger('s3io', config)
 
 def info(task_id):
     '''Gets state of a given task_id, parm state=true for task result'''
     default_error = json.dumps({'ERROR': 'No such id or wrong request'})
     try:
-        LOGGER.info('Fetching results from ES')
-        
-        
+        logger.info('Fetching results from ES')
+
+
         state = request.args.get('state')
         if state == 'false':
              state=False
-        else: state = True  
+        else: state = True
         print(state)
 
         res = remote_fetch_result(task_id=task_id,
                                   state=state)
-        
+
     except (ValueError, TypeError) as info_err:
-        LOGGER.error(info_err)
+        logger.error(info_err)
         res = json.dumps({'ERROR': str(info_err)})
     try:
         res = json.dumps(res)
@@ -43,18 +49,32 @@ def info(task_id):
     return default_error
 
 def s3_to_remote(**body):
-     LOGGER.info(body)
+     logger.info(body)
      request_id = request.headers.get('x-meemoo-request-id')
      body['remotefetch']['x-meemoo-request-id'] = request_id
      task_ = process(body['remotefetch'])
      return str(task_)
 
 def s3_to_ftp(**body):
-    LOGGER.info(body)
+    logger.info(body)
     request_id = request.headers.get('x-meemoo-request-id')
-    SwarmS3Client().to_ftp()
- 
-  
+    endpoint = body['s3toftp']['source']['domain']['name']
+    obj = body['s3toftp']['source']['object']['key']
+    key = config.app_cfg['S3_TO_FTP']['s3access_key']
+    secret = config.app_cfg['S3_TO_FTP']['s3secret_key']
+    bucket = body['s3toftp']['source']['bucket']['name']
+    to_ftp = {'user': body['s3toftp']['destination']['user'],
+                    'password': body['s3toftp']['destination']['password'],
+                    'ftp_path': body['s3toftp']['destination']['path'],
+                    'ftp_host': body['s3toftp']['destination']['host']}
+    SwarmS3Client(endpoint=endpoint,
+                  obj=obj,
+                  bucket=bucket,
+                  secret=secret,
+                  key=key,
+                  to_ftp=to_ftp).to_ftp()
+
+
 
 if __name__ == '__main__':
     app = connexion.FlaskApp(__name__, port=9090, specification_dir='./api/')

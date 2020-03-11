@@ -66,7 +66,7 @@ def swarm_to_ftp(self, **body):
 
 @app.task(max_retries=5, bind=True)
 def swarm_to_remote(self, **body):
-    '''FTP to remote'''
+    '''URL to remote'''
     dest_path = body['body']['destination']['path']
     msg = body['body']
     id_ = msg['x-meemoo-request-id']
