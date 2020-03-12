@@ -28,12 +28,7 @@ paths:
           schema:
             type: string
             example: "6834be65-95af-41be-b1b8-68174f5068fe"
-        - name: state
-          in: query
-          description: the task state
-          schema:
-            type: boolean
-            example: true
+
 
   /remote_fetch/:
     post:
@@ -82,6 +77,12 @@ paths:
             type: string
             format: uuid
           required: true
+        - name: async
+          in: query
+          description: create a job or not
+          schema:
+            type: boolean
+            example: true
 
 
 components:

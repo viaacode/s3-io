@@ -13,7 +13,7 @@ Created on Tue Jan  7 10:50:23 2020
 
 ## info
 
-[[find in source code]](../../s3_io/s3io_api.py#L19)
+[[find in source code]](../../s3_io/s3io_api.py#L25)
 
 ```python
 def info(task_id):
@@ -23,15 +23,15 @@ Gets state of a given task_id, parm state=true for task result
 
 ## s3_to_ftp
 
-[[find in source code]](../../s3_io/s3io_api.py#L52)
+[[find in source code]](../../s3_io/s3io_api.py#L59)
 
 ```python
-def s3_to_ftp(**body):
+def s3_to_ftp(async_task=True, **body):
 ```
 
 ## s3_to_remote
 
-[[find in source code]](../../s3_io/s3io_api.py#L45)
+[[find in source code]](../../s3_io/s3io_api.py#L51)
 
 ```python
 def s3_to_remote(**body):

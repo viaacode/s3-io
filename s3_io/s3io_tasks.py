@@ -105,17 +105,18 @@ def s3_to_ftp(self, **body):
 
     """
     logger.info(body)
-    dest_path = body['body']['dest_path']
+    body = body['body']['s3toftp']
+    dest_path = body['destination']['path']
     logger.info('prcessing %s for object_key %s',
                 dest_path,
-                body['s3']['object']['key'])
+                body['source']['object']['key'])
 
     try:
-        SwarmS3Client(endpoint='http://s3-qas.viaa.be/',
+        SwarmS3Client(endpoint='http://' + body['source']['domain']['name'],
                       key=s3access_key,
                       secret=s3secret_key,
-                      obj=body['s3']['object']['key'],
-                      bucket=body['s3']['bucket']['name'],
+                      obj=body['source']['object']['key'],
+                      bucket=body['source']['bucket']['name'],
                       to_ftp={'user': user,
                               'password': passwd,
                               'ftp_path': dest_path,

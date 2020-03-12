@@ -33,7 +33,7 @@ Created on Tue Jan  7 10:50:45 2020
 
 ## DownloadFromSwarm
 
-[[find in source code]](../../s3_io/s3io_tools.py#L408)
+[[find in source code]](../../s3_io/s3io_tools.py#L409)
 
 ```python
 class DownloadFromSwarm():
@@ -60,7 +60,7 @@ int
 
 ## IteratorToStream
 
-[[find in source code]](../../s3_io/s3io_tools.py#L388)
+[[find in source code]](../../s3_io/s3io_tools.py#L389)
 
 ```python
 class IteratorToStream(io.RawIOBase):
@@ -73,7 +73,7 @@ Description:
 
 ### IteratorToStream().read
 
-[[find in source code]](../../s3_io/s3io_tools.py#L398)
+[[find in source code]](../../s3_io/s3io_tools.py#L399)
 
 ```python
 def read(size=None):
@@ -81,7 +81,7 @@ def read(size=None):
 
 ## RequestIterator
 
-[[find in source code]](../../s3_io/s3io_tools.py#L463)
+[[find in source code]](../../s3_io/s3io_tools.py#L464)
 
 ```python
 class RequestIterator():
@@ -95,7 +95,7 @@ Description:
 
 ### RequestIterator().\_\_iter\_\_
 
-[[find in source code]](../../s3_io/s3io_tools.py#L490)
+[[find in source code]](../../s3_io/s3io_tools.py#L491)
 
 ```python
 def __iter__():
@@ -105,7 +105,7 @@ Iters with chunck size
 
 ### RequestIterator().as_progress
 
-[[find in source code]](../../s3_io/s3io_tools.py#L503)
+[[find in source code]](../../s3_io/s3io_tools.py#L504)
 
 ```python
 def as_progress():
@@ -123,7 +123,7 @@ Description:
 
 ### RequestIterator().as_stream
 
-[[find in source code]](../../s3_io/s3io_tools.py#L494)
+[[find in source code]](../../s3_io/s3io_tools.py#L495)
 
 ```python
 def as_stream():
@@ -272,7 +272,7 @@ Kwargs:
 
 ### SwarmS3Client().ffprobe_obj
 
-[[find in source code]](../../s3_io/s3io_tools.py#L303)
+[[find in source code]](../../s3_io/s3io_tools.py#L304)
 
 ```python
 def ffprobe_obj():
@@ -280,19 +280,23 @@ def ffprobe_obj():
 
 ### SwarmS3Client().get_metadata
 
-[[find in source code]](../../s3_io/s3io_tools.py#L294)
+[[find in source code]](../../s3_io/s3io_tools.py#L295)
 
 ```python
 def get_metadata():
 ```
 
+Fetch metadata look for content in Metadata
+
 ### SwarmS3Client().signed_url
 
-[[find in source code]](../../s3_io/s3io_tools.py#L287)
+[[find in source code]](../../s3_io/s3io_tools.py#L288)
 
 ```python
 def signed_url():
 ```
+
+the signed url to download
 
 ### SwarmS3Client().to_file
 
@@ -323,11 +327,12 @@ Description:
 - progress:Boolean:
 
 - Default False
+
 - show tqdm progress bar if True
 
 ### SwarmS3Client().update_metadata
 
-[[find in source code]](../../s3_io/s3io_tools.py#L351)
+[[find in source code]](../../s3_io/s3io_tools.py#L352)
 
 ```python
 def update_metadata():
@@ -337,7 +342,7 @@ Fails if key exists
 
 ### SwarmS3Client().update_metadata_put
 
-[[find in source code]](../../s3_io/s3io_tools.py#L314)
+[[find in source code]](../../s3_io/s3io_tools.py#L315)
 
 ```python
 def update_metadata_put():
@@ -345,7 +350,7 @@ def update_metadata_put():
 
 ### SwarmS3Client().wipe_metadata_put
 
-[[find in source code]](../../s3_io/s3io_tools.py#L333)
+[[find in source code]](../../s3_io/s3io_tools.py#L334)
 
 ```python
 def wipe_metadata_put():
@@ -353,7 +358,7 @@ def wipe_metadata_put():
 
 ## download_tofile
 
-[[find in source code]](../../s3_io/s3io_tools.py#L583)
+[[find in source code]](../../s3_io/s3io_tools.py#L584)
 
 ```python
 class download_tofile(object):
@@ -362,7 +367,7 @@ class download_tofile(object):
 
 ## check_key
 
-[[find in source code]](../../s3_io/s3io_tools.py#L377)
+[[find in source code]](../../s3_io/s3io_tools.py#L378)
 
 ```python
 def check_key(dict, key):
@@ -370,7 +375,7 @@ def check_key(dict, key):
 
 ## stream_to_file
 
-[[find in source code]](../../s3_io/s3io_tools.py#L558)
+[[find in source code]](../../s3_io/s3io_tools.py#L559)
 
 ```python
 def stream_to_file(url, dst):
@@ -392,7 +397,7 @@ File path, place to put the file
 
 ## upload_file
 
-[[find in source code]](../../s3_io/s3io_tools.py#L524)
+[[find in source code]](../../s3_io/s3io_tools.py#L525)
 
 ```python
 def upload_file(endpoint, secret, key, file_name, bucket, object_name=None):

@@ -48,4 +48,4 @@ FTP to swarm function
 def swarm_to_remote(self, **body):
 ```
 
-FTP to remote
+URL to remote

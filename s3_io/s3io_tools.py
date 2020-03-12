@@ -228,7 +228,7 @@ class SwarmS3Client():
         self.to_ftp_path = to_ftp['ftp_path']
         self.ftp_host = to_ftp['ftp_host']
         self.session = boto3.session.Session()
-        logger.info(self.metadata)
+        logger.info('opening session s3 client')
         self.client= self.session.client(
                 service_name='s3',
                 aws_access_key_id = self.key,
