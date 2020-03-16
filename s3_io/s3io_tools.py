@@ -228,7 +228,8 @@ class SwarmS3Client():
         self.to_ftp_path = to_ftp['ftp_path']
         self.ftp_host = to_ftp['ftp_host']
         self.session = boto3.session.Session()
-        logger.info('opening session s3 client')
+        logger.info('opening session s3 client : %s , %s ,%s', self.endpoint,
+                    self.obj,self.key)
         self.client= self.session.client(
                 service_name='s3',
                 aws_access_key_id = self.key,
@@ -264,7 +265,7 @@ class SwarmS3Client():
         """
         self.progress = progress
         url = self.signed_url()
-        ftp_connector= ftplib.FTP(self.ftp_host,
+        ftp_connector = ftplib.FTP(self.ftp_host,
                                   self.to_ftp_user,self.to_ftp_password)
         ftp_connector.encoding = 'utf-8'  # force encoding utf-8
         destpath = self.to_ftp_path

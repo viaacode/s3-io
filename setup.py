@@ -9,7 +9,7 @@ Created on Fri Jan 8 09:07:08 2018
 from setuptools import setup
 
 setup(name='s3_io',
-      version='1.1.1',
+      version='1.1.2',
       description='VIAA S3 Events',
       long_description='Publiseh s3 event to rabbitmq.',
       classifiers=[

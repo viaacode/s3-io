@@ -64,25 +64,39 @@ def swarm_to_ftp(self, **body):
                      exc_info=True)
         raise self.retry(coutdown=1, exc=io_e, max_retries=2)
 
+
 @app.task(max_retries=5, bind=True)
 def swarm_to_remote(self, **body):
     '''URL to remote'''
+    logger.info(str(body))
     dest_path = body['body']['destination']['path']
-    msg = body['body']
-    id_ = msg['x-meemoo-request-id']
+    body = body['body']
+    if 'user' in body['destination']:
+        logger.info(str(type(body['destination']['password'])))
+
+        user = body['destination']['user']
+        host = body['destination']['host']
+        password = body['destination']['password']
+    else:
+        host = config.app_cfg['RemoteCurl']['host']
+        user = config.app_cfg['RemoteCurl']['user']
+        password = config.app_cfg['RemoteCurl']['passw']
+
+    id_ = body['x-meemoo-request-id']
     log_fields = {'x-meemoo-request-id': id_}
-    bucket = msg['source']['bucket']['name']
-    key = msg['source']['object']['key']
+    bucket = body['source']['bucket']['name']
+    key = body['source']['object']['key']
     logger.info('process %s for object_key %s',
                 dest_path,
-                msg['source']['object']['key'],
+                body['source']['object']['key'],
                 fields=log_fields)
     try:
         url = 'http://swarmget.do.viaa.be/' + bucket + '/' + key
         f = remote_fetch(url=url,
                          dest_path=dest_path,
-                         host=config.app_cfg['RemoteCurl']['host'],
-                         user=config.app_cfg['RemoteCurl']['user'],
+                         host=host,
+                         user=user,
+                         password=password,
                          request_id=id_)
 
         return str(f)
@@ -93,32 +107,42 @@ def swarm_to_remote(self, **body):
                      exc_info=True)
         raise self.retry(coutdown=1, exc=e, max_retries=5)
 
+
 @app.task(max_retries=3, bind=True)
 def s3_to_ftp(self, **body):
     """S3 to FTP
 
     Description:
 
-         - Uses instance of class SwarmS3Client to_ftp call t
+         - Uses instance of class SwarmS3Client to_ftp call
 
          - Streams from s3 to ftp
 
     """
     logger.info(body)
-    body = body['body']['s3toftp']
+    body = body['body']
+    # the swager adds qury path to dict, so remove it
+    if 's3toftp' in body:
+        body = body['s3toftp']
     dest_path = body['destination']['path']
-    logger.info('prcessing %s for object_key %s',
+    logger.info('processing %s for object_key %s',
                 dest_path,
                 body['source']['object']['key'])
-
+    user = body['destination']['user']
+    password = body['destination']['password']
+    dest_path = body['destination']['path']
+    server = body['destination']['host']
+    endpoint = body['source']['domain']['name']
+    obj = body['source']['object']['key']
+    bucket = body['source']['bucket']['name']
     try:
-        SwarmS3Client(endpoint='http://' + body['source']['domain']['name'],
+        SwarmS3Client(endpoint=endpoint,
                       key=s3access_key,
                       secret=s3secret_key,
-                      obj=body['source']['object']['key'],
-                      bucket=body['source']['bucket']['name'],
+                      obj=obj,
+                      bucket=bucket,
                       to_ftp={'user': user,
-                              'password': passwd,
+                              'password': password,
                               'ftp_path': dest_path,
                               'ftp_host': server}).to_ftp()
         return True

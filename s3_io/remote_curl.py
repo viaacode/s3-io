@@ -151,6 +151,8 @@ class RemoteCurl():
 
          - user: the ssh user
 
+         - password: user password
+
          - request_id: optional for logging
 
     """
@@ -162,7 +164,8 @@ class RemoteCurl():
                  user=None,
                  headers=None,
                  parts=False,
-                 request_id=None):
+                 request_id=None,
+                 password=None):
         self.host = host,
         self.request_id = request_id
         self.fields = {"x-meemoo-request-id": self.request_id,
@@ -178,14 +181,18 @@ class RemoteCurl():
             self.host = config.app_cfg['RemoteCurl']['host']
         self.url = url
         self.dest_path = dest_path
+        if password is None:
+            self.password = config.app_cfg['RemoteCurl']['host']
+        else:
+            self.password = password
         if headers:
             self.headers = headers
         if parts:
             self.parts = True
-            _dir, f = os.path.split(self.dest_path)
+            dir_, f = os.path.split(self.dest_path)
             b, _e = os.path.splitext(f)
             b = os.path.basename(os.path.normpath(b))
-            self.tmp_dir = _dir + "/." +  b
+            self.tmp_dir = dir_ + "/." +  b
             self.dest_path = os.path.join(self.tmp_dir, f)
         else:
             self.tmp_dir = os.path.split(dest_path)[0]
@@ -202,7 +209,7 @@ class RemoteCurl():
         remote_client.connect(self.host,
                               port=22,
                               username=self.user,
-                              password=config.app_cfg['RemoteCurl']['passw'])
+                              password=self.password)
         cmd = "mkdir -p \"{}\" &&".format(self.tmp_dir)+\
         "curl -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\n\" -L "+\
         " {} ".format(self.headers) +\
@@ -282,7 +289,11 @@ class RemoteAssembleParts():
                  dest_path=None,
                  host=None,
                  user=None,
+                 password=None,
                  request_id='x-meemoo-request-id'):
+        self.password = password
+        if self.password is None:
+            self.password = config.app_cfg['RemoteCurl']['passw']
         self.tmp_dir = tmp_dir
         self.dest_path = dest_path
         if host is None:
@@ -319,14 +330,14 @@ class RemoteAssembleParts():
             self.host,
             port=22,
             username=self.user,
-            password=config.app_cfg['RemoteCurl']['passw'])
+            password=self.password)
 
         cmd = """cd {} &&
         if [ -f "{}" ]; then echo ERROR;fi
         for i in $(ls *part*);do cat "$i"  >> "{}";done;
         cd .. &&
         rm -rf "{}" &&
-        echo SUCCESS ||echo ERROR""".format(self.tmp_dir,
+        echo SUCCESS ||echo ERROR && exit 1""".format(self.tmp_dir,
                                             self.dest_path,
                                             self.dest_path,
                                             self.tmp_dir)
@@ -334,12 +345,13 @@ class RemoteAssembleParts():
                     self.host,
                     str(cmd.rstrip()))
         try:
-            _stdin, stdout, _stderr = remote_client.exec_command(cmd)
+            _stdin, stdout, stderr = remote_client.exec_command(cmd)
             out = stdout.readlines()
             if 'ERROR\n' in out:
                 self.fields['RESULT'] = 'FAILED'
                 self.fields['x-meemoo-request-id'] = self.request_id
-                logger.error(str(out),
+                ssh_error = str(stderr.readlines())
+                logger.error(str(out) + 'bash ERROR:' + ssh_error,
                              exc_info=True,
                              fields=self.fields)
                 raise IOError
@@ -371,6 +383,7 @@ def remote_fetch(url,
                  splitBy=4,
                  host=None,
                  user=None,
+                 password=None,
                  request_id=None,
                  ):
     """Description:
@@ -433,6 +446,7 @@ def remote_fetch(url,
                              parts=True,
                              user=user,
                              host=host,
+                             password=password,
                              headers=curl_headers)()
     # create one downloading thread per chunk
     downloaders = [

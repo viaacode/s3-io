@@ -37,7 +37,8 @@ debug_msg = {"service_type": "celery",
              "destination": {
                  "path": "/mnt/temptina/" + rnd + ".MXF",
                  "host": "do-prd-tra-02.do.viaa.be",
-                 "user": "tina"}}
+                 "user": "root",
+                 "password":'zeticon0331',}}
 
 
 def validate_input(msg):
