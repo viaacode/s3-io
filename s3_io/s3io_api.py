@@ -50,15 +50,15 @@ def info(task_id):
 
 def s3_to_remote(**body):
      logger.info(body)
-     request_id = request.headers.get('x-meemoo-request-id')
-     body['remotefetch']['x-meemoo-request-id'] = request_id
+     request_id = request.headers.get('x-request-id')
+     body['remotefetch']['x-request-id'] = request_id
      task_ = process(body['remotefetch'])
      return str(task_)
 
 
 def s3_to_ftp(async_task=True,**body):
     logger.info(body)
-    request_id = request.headers.get('x-meemoo-request-id')
+    request_id = request.headers.get('x-request-id')
     endpoint = body['s3toftp']['source']['domain']['name']
     obj = body['s3toftp']['source']['object']['key']
     key = config.app_cfg['S3_TO_FTP']['s3access_key']
@@ -78,7 +78,7 @@ def s3_to_ftp(async_task=True,**body):
         dest_path = body['s3toftp']['destination']['path']
         task = job.apply_async(retry=True)
         job_id = task.id
-        log_fields = {'x-meemoo-request-id': request_id}
+        log_fields = {'x-request-id': request_id}
         logger.info('task_id: %s for object_key %s to file %s',
                     job_id,
                     key,
@@ -96,7 +96,7 @@ def s3_to_ftp(async_task=True,**body):
 
 # def asyc_s3_to_ftp(**body):
 #     logger.info(body)
-#     request_id = request.headers.get('x-meemoo-request-id')
+#     request_id = request.headers.get('x-request-id')
 
 
 if __name__ == '__main__':

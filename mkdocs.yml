@@ -11,8 +11,11 @@ pages:
 - s3_worker_ap.py: s3_io/s3_worker_api.md
 - s3io_tasks.py: s3_io/s3io_tasks.md
 - s3io_tools.py: s3_io/s3io_tools.md
-- s3io_worke.py: s3_io/s3io_worker.md 
-
+- s3io_worker.py: s3_io/s3io_worker.md 
+- s3_io/remote_ffprobe.md.py:  s3_io/remote_ffprobe.md
+- remote_get_local.py: s3_io/remote_get_local.md
+- s3io_api.ppy: s3_io/s3io_api.md
+- task_info.py: s3_io/task_info.md 
 site_dir: _build/site
 site_name: Swarm S3 IO tools
 theme: readthedocs

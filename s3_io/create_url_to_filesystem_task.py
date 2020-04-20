@@ -21,14 +21,14 @@ from s3_io.s3io_tasks import swarm_to_remote
 
 config = ConfigParser()
 logger = logging.get_logger('s3io', config)
-rnd = str(uuid.uuid4())
+rnd = str(uuid.uuid4().hex)
 debug_msg = {"service_type": "celery",
              "service_name": "s3_to_filesystem",
              "service_version": "0.1",
-             "x-meemoo-request-id": rnd,
+             "x-request-id": rnd,
              "source": {
                  "domain": {
-                     "name": "s3-qas.viaa.be"},
+                     "name": "s3-qas.xx.xx"},
                  "bucket": {
                      "name": "tests3vents"},
                  "object": {
@@ -36,9 +36,9 @@ debug_msg = {"service_type": "celery",
                  },
              "destination": {
                  "path": "/mnt/temptina/" + rnd + ".MXF",
-                 "host": "do-prd-tra-02.do.viaa.be",
-                 "user": "root",
-                 "password":'zeticon0331',}}
+                 "host": "xxxx",
+                 "user": "xxx",
+                 "password":'xxxx',}}
 
 
 def validate_input(msg):
@@ -48,14 +48,13 @@ def validate_input(msg):
          - Basic validation of a message
     """
 
-    request_id = msg["x-meemoo-request-id"]
+    request_id = msg["x-request-id"]
     key = msg['source']['object']['key']
-    log_fields = {'x-meemoo-request-id': request_id}
 
     if 'path' in msg['destination']:
-        logger.info('valid msg for object_key %s',
+        logger.info('valid msg for object_key %s and request _id: %s',
                     str(key),
-                    fields=log_fields)
+                    request_id)
         return True
     return False
 
@@ -79,17 +78,15 @@ def process(msg):
      """
     if validate_input(msg):
         key = msg['source']['object']['key']
-        request_id = msg["x-meemoo-request-id"]
+        request_id = msg["x-request-id"]
         dest_path = msg["destination"]["path"]
         job = swarm_to_remote.s(body=msg)
         celery_task = job.apply_async(retry=True)
         job_id = celery_task.id
-        log_fields = {'x-meemoo-request-id': request_id}
         logger.info('task Filesystem task_id: %s for object_key %s to file %s',
                     job_id,
                     key,
-                    dest_path,
-                    fields=log_fields)
+                    dest_path)
         return celery_task
     # else:
     logger.error('Not a valid message')

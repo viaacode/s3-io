@@ -6,17 +6,15 @@ Created on Fri Aug  2 13:11:15 2019
 Remote curl space checker:
 
 - [S3io](../README.md#s3io) / [Modules](../MODULES.md#s3io-modules) / [S3 Io](index.md#s3-io) / RemoteCurl
-    - [RemoteAssembleParts](#remoteassembleparts)
-        - [RemoteAssembleParts().\_\_call\_\_](#remoteassembleparts__call__)
     - [RemoteCurl](#remotecurl)
         - [RemoteCurl().\_\_call\_\_](#remotecurl__call__)
-    - [buildRange](#buildrange)
+        - [RemoteCurl().downloadChunk](#remotecurldownloadchunk)
+        - [RemoteCurl().dwnl_parts](#remotecurldwnl_parts)
+        - [RemoteCurl().remote_get](#remotecurlremote_get)
+    - [build_range](#build_range)
     - [chunks](#chunks)
     - [decorator](#decorator)
-    - [download_in_parts](#download_in_parts)
     - [remote_fetch](#remote_fetch)
-    - [remote_ffprobe](#remote_ffprobe)
-    - [remote_get](#remote_get)
     - [timeit](#timeit)
 
 Gdownload file with curl over ssh with paramiko
@@ -29,36 +27,9 @@ r=RemoteCurl(url="http://10.50.152.194:80/tests3vents/0k2699098k-left.mp4", dest
 
 - `@author` - tina
 
-## RemoteAssembleParts
-
-[[find in source code]](../../s3_io/remote_curl.py#L277)
-
-```python
-class RemoteAssembleParts():
-    def __init__(
-        tmp_dir=None,
-        dest_path=None,
-        host=None,
-        user=None,
-        request_id='x-meemoo-request-id',
-    ):
-```
-
-Put the shit togetter
-
-### RemoteAssembleParts().\_\_call\_\_
-
-[[find in source code]](../../s3_io/remote_curl.py#L362)
-
-```python
-def __call__():
-```
-
-Join the files
-
 ## RemoteCurl
 
-[[find in source code]](../../s3_io/remote_curl.py#L142)
+[[find in source code]](../../s3_io/remote_curl.py#L158)
 
 ```python
 class RemoteCurl():
@@ -70,6 +41,7 @@ class RemoteCurl():
         headers=None,
         parts=False,
         request_id=None,
+        password=None,
     ):
 ```
 
@@ -83,11 +55,13 @@ class RemoteCurl():
 
 - user: the ssh user
 
+- password: user password
+
 - request_id: optional for logging
 
 ### RemoteCurl().\_\_call\_\_
 
-[[find in source code]](../../s3_io/remote_curl.py#L272)
+[[find in source code]](../../s3_io/remote_curl.py#L386)
 
 ```python
 def __call__():
@@ -95,17 +69,77 @@ def __call__():
 
 Run remote_get
 
-## buildRange
+### RemoteCurl().downloadChunk
 
-[[find in source code]](../../s3_io/remote_curl.py#L58)
+[[find in source code]](../../s3_io/remote_curl.py#L241)
 
 ```python
-def buildRange(value, numsplits):
+@timeit
+def downloadChunk(
+    idx,
+    irange,
+    url,
+    dest_path,
+    user,
+    password,
+    request_id,
+    host,
+):
 ```
+
+Description:
+    - RemoteCurl returns tmp_dir as string if parts is True,
+      passes this to assamble (paramiko)
+
+- Start 4 download threads
+
+- Join the files (remote command paramiko)
+
+#### See also
+
+- [timeit](#timeit)
+
+### RemoteCurl().dwnl_parts
+
+[[find in source code]](../../s3_io/remote_curl.py#L278)
+
+```python
+@timeit
+def dwnl_parts():
+```
+
+Download parts
+
+#### See also
+
+- [timeit](#timeit)
+
+### RemoteCurl().remote_get
+
+[[find in source code]](../../s3_io/remote_curl.py#L215)
+
+```python
+@timeit
+def remote_get():
+```
+
+#### See also
+
+- [timeit](#timeit)
+
+## build_range
+
+[[find in source code]](../../s3_io/remote_curl.py#L56)
+
+```python
+def build_range(value, numsplits):
+```
+
+Returns list with ranges for parts download
 
 ## chunks
 
-[[find in source code]](../../s3_io/remote_curl.py#L52)
+[[find in source code]](../../s3_io/remote_curl.py#L50)
 
 ```python
 def chunks(lst, n):
@@ -115,7 +149,7 @@ Yield successive n-sized chunks from lst.
 
 ## decorator
 
-[[find in source code]](../../s3_io/remote_curl.py#L32)
+[[find in source code]](../../s3_io/remote_curl.py#L29)
 
 ```python
 def decorator(d):
@@ -123,99 +157,32 @@ def decorator(d):
 
 Make function d a decorator: d wraps a function fn.
 
-## download_in_parts
+## remote_fetch
 
 [[find in source code]](../../s3_io/remote_curl.py#L72)
 
 ```python
-@timeit
-def download_in_parts(url=None, dest_path=None, splitBy=4):
-```
-
-#### Notes
-
-- not used needs to run on host
-
-Download url in parts and join (locally)
-
-#### See also
-
-- [timeit](#timeit)
-
-## remote_fetch
-
-[[find in source code]](../../s3_io/remote_curl.py#L368)
-
-```python
-@timeit
 def remote_fetch(
+    host,
+    user,
+    password,
     url,
     dest_path,
-    splitBy=4,
-    host=None,
-    user=None,
+    tmp_dir=None,
+    headers=None,
     request_id=None,
 ):
 ```
 
-Description:
-
-- Using paramiko ssh client
-
-- Used in the task uses RemoteCurl to download parts in threads
-(defaults to 4)
-
-- download frorm url in parts and assemble to destpath
-
-- the parts dir is returned by remoteCurl instance output
-
-#### Arguments
-
-- `-` *host* - remote hostname
-- `-` *user* - needs to have ssh key on remote host working!!
-- `-` *parts* - creates a hidden dir (.) with basename of filename containing the file
-
-#### See also
-
-- [timeit](#timeit)
-
-## remote_ffprobe
-
-[[find in source code]](../../s3_io/remote_curl.py#L528)
-
-```python
-def remote_ffprobe(mediafile, host=None, user=None):
-```
-
-Runs ffprobe on remote host
-
-## remote_get
-
-[[find in source code]](../../s3_io/remote_curl.py#L467)
-
-```python
-def remote_get(url, dest_path):
-```
-
-Description:
-
-- NOT USED atm
-
-- Downlod url to dest_path, using paramiko and curl
-
-#### Arguments
-
-- `-` *dest_path* - string
-
-- url : string
+Remote download from swarm to local filesystem curl + ssh
 
 ## timeit
 
-[[find in source code]](../../s3_io/remote_curl.py#L40)
+[[find in source code]](../../s3_io/remote_curl.py#L37)
 
 ```python
 @decorator
-def timeit(f):
+def timeit(func_name):
 ```
 
 time a function, used as decorator

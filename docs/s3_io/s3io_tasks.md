@@ -13,7 +13,7 @@ Created on Wed Jan  8 16:25:28 2020
 
 ## s3_to_ftp
 
-[[find in source code]](../../s3_io/s3io_tasks.py#L96)
+[[find in source code]](../../s3_io/s3io_tasks.py#L113)
 
 ```python
 @app.task(max_retries=3, bind=True)
@@ -24,7 +24,7 @@ S3 to FTP
 
 Description:
 
-- Uses instance of class SwarmS3Client to_ftp call t
+- Uses instance of class SwarmS3Client to_ftp call
 
 - Streams from s3 to ftp
 
@@ -41,7 +41,7 @@ FTP to swarm function
 
 ## swarm_to_remote
 
-[[find in source code]](../../s3_io/s3io_tasks.py#L67)
+[[find in source code]](../../s3_io/s3io_tasks.py#L68)
 
 ```python
 @app.task(max_retries=5, bind=True)

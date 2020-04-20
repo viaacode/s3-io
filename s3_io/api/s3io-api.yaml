@@ -33,7 +33,7 @@ paths:
   /remote_fetch/:
     post:
       operationId: s3io_api.s3_to_remote
-      summary: Create or update a pet
+      summary: Create s3io task s3 to remote
 
       responses:
         '200':
@@ -57,7 +57,7 @@ paths:
   /s3_to_ftp/:
     post:
       operationId: s3io_api.s3_to_ftp
-      summary: Create or update a pet
+      summary: Create or task s3 to FTP
 
       responses:
         '200':

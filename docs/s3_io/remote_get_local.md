@@ -1,0 +1,30 @@
+# Remote Get Local
+
+> Auto-generated documentation for [s3_io.remote_get_local](../../s3_io/remote_get_local.py) module.
+
+Created on Sat Apr  4 11:00:16 2020
+
+- [S3io](../README.md#s3io) / [Modules](../MODULES.md#s3io-modules) / [S3 Io](index.md#s3-io) / Remote Get Local
+    - [remote_get](#remote_get)
+
+@author: tina
+
+## remote_get
+
+[[find in source code]](../../s3_io/remote_get_local.py#L11)
+
+```python
+def remote_get(url, dest_path):
+```
+
+Description:
+
+- NOT USED atm
+
+- Downlod url to dest_path, using paramiko and curl
+
+#### Arguments
+
+- `-` *dest_path* - string
+
+- url : string

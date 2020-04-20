@@ -84,6 +84,7 @@ class SwarmIo():
         key = unquote(self.key)
         self.log_fields={'x-viaa-request-id':self.request_id}
         logger.info("requesting object key info for: %s", self.key,
+                    correlationId=self.request_id,
                     fields=self.log_fields)
         swarm_url = 'http://' + swarmurl
         self.headers={'host':swarm_domain}

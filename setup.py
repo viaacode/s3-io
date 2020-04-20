@@ -9,7 +9,7 @@ Created on Fri Jan 8 09:07:08 2018
 from setuptools import setup
 
 setup(name='s3_io',
-      version='1.1.2',
+      version='1.1.4',
       description='VIAA S3 Events',
       long_description='Publiseh s3 event to rabbitmq.',
       classifiers=[
@@ -47,7 +47,7 @@ setup(name='s3_io',
               'elasticsearch==6.4.0',
 #              'viaa-chassis @git+https://github.com/viaacode/chassis.py.git#egg=chassis-0.4'
       ],
-              
+
       # scripts=['./scripts/s3_io-daemon',
       #          ],
       entry_points={
