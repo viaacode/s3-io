@@ -43,6 +43,7 @@ setup(name='s3_io',
               'colorama',
               'paramiko==2.7.1',
               'elastic-apm==5.4.3',
+              'pytest',
               'elasticsearch==6.4.0',
 #              'viaa-chassis @git+https://github.com/viaacode/chassis.py.git#egg=chassis-0.4'
       ],
