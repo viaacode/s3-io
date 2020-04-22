@@ -20,7 +20,7 @@ build:
 test:
 	docker container run --name "${APP_NAME}_test" \
 					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
-					"-m" "pytest" "--cov=app"
+					"-m" "pytest" "--cov=./"
 lint:
 	docker container run --name "${APP_NAME}_lint" \
 					--entrypoint flake8 "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
