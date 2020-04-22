@@ -22,20 +22,14 @@ import configparser
 from json import JSONDecodeError
 import pika
 from retry import retry
-from viaa.observability import logging#, correlation
-from viaa.observability.correlation import CorrelationID
+from viaa.observability import logging #, correlation
+# from viaa.observability.correlation import CorrelationID
 from viaa.configuration import ConfigParser
 from s3_io.create_url_to_filesystem_task import process
 config = ConfigParser()
 config_ = configparser.ConfigParser()
 logger = logging.get_logger('s3io', config)
 swarmurl = config.app_cfg['castor']['swarmurl']
-
-# todo use new feature ???
-#correlation.initialize(flask=None, logger=logger, pika=pika, requests=None)
-
-
-
 
 
 @retry(pika.exceptions.AMQPConnectionError,
@@ -91,9 +85,8 @@ def __main__():
                 delivery_mode=2,
                 correlation_id=properties.correlation_id)
             body = json.loads(body.decode('utf-8'))
-            #request_id = properties.headers.get("X-Correlation-ID")
+            # request_id = properties.headers.get("X-Correlation-ID")
             request_id = properties.correlation_id
-            test_chas_corid = CorrelationID().correlation_id
             if request_id is None:
                 request_id = uuid.uuid4().hex
                 logger.info("Genrated a random request id")

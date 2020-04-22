@@ -9,13 +9,13 @@ Created on Tue Jan  7 10:50:23 2020
 import json
 import logging
 import connexion
-from flask import request, Flask
+from flask import request
 from s3_io.create_url_to_filesystem_task import process
 from s3_io.task_info import remote_fetch_result
 from s3_io.s3io_tools import SwarmS3Client
+from s3_io.s3io_tasks import swarm_to_ftp, s3_to_ftp as s3_to_ftp_task
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
-from s3_io.s3io_tasks import swarm_to_ftp, s3_to_ftp as s3_to_ftp_task
 config = ConfigParser()
 logger = logging.get_logger('s3io', config)
 
@@ -31,7 +31,7 @@ def info(task_id):
 
         state = request.args.get('state')
         if state == 'false':
-             state=False
+            state = False
         else: state = True
         print(state)
 
@@ -43,20 +43,22 @@ def info(task_id):
         res = json.dumps({'ERROR': str(info_err)})
     try:
         res = json.dumps(res)
-        return(res)
+        return res
     except (ValueError, TypeError):
         return str(res)
     return default_error
 
 def s3_to_remote(**body):
-     logger.info(body)
-     request_id = request.headers.get('x-request-id')
-     body['remotefetch']['x-request-id'] = request_id
-     task_ = process(body['remotefetch'])
-     return str(task_)
+    '''Async remote curl call'''
+    logger.info(body)
+    request_id = request.headers.get('x-request-id')
+    body['remotefetch']['x-request-id'] = request_id
+    task_ = process(body['remotefetch'])
+    return str(task_)
 
 
-def s3_to_ftp(async_task=True,**body):
+def s3_to_ftp(async_task=True, **body):
+    '''s3 naar ftp , async optional'''
     logger.info(body)
     request_id = request.headers.get('x-request-id')
     endpoint = body['s3toftp']['source']['domain']['name']
@@ -64,12 +66,13 @@ def s3_to_ftp(async_task=True,**body):
     key = config.app_cfg['S3_TO_FTP']['s3access_key']
     secret = config.app_cfg['S3_TO_FTP']['s3secret_key']
     bucket = body['s3toftp']['source']['bucket']['name']
-    to_ftp = {'user': body['s3toftp']['destination']['user'],
-                    'password': body['s3toftp']['destination']['password'],
-                    'ftp_path': body['s3toftp']['destination']['path'],
-                    'ftp_host': body['s3toftp']['destination']['host']}
+    to_ftp = {
+        'user': body['s3toftp']['destination']['user'],
+        'password': body['s3toftp']['destination']['password'],
+        'ftp_path': body['s3toftp']['destination']['path'],
+        'ftp_host': body['s3toftp']['destination']['host']}
     if 'async' in request.args:
-        if request.args['async'] == True:
+        if request.args['async'] is True:
             async_task = True
 
 
@@ -78,25 +81,20 @@ def s3_to_ftp(async_task=True,**body):
         dest_path = body['s3toftp']['destination']['path']
         task = job.apply_async(retry=True)
         job_id = task.id
-        log_fields = {'x-request-id': request_id}
         logger.info('task_id: %s for object_key %s to file %s',
                     job_id,
                     key,
                     dest_path,
-                    fields=log_fields)
+                    correlationId=request_id)
         return str(job_id)
-    else:
-        SwarmS3Client(endpoint=endpoint,
-                      obj=obj,
-                      bucket=bucket,
-                      secret=secret,
-                      key=key,
-                      to_ftp=to_ftp).to_ftp()
 
-
-# def asyc_s3_to_ftp(**body):
-#     logger.info(body)
-#     request_id = request.headers.get('x-request-id')
+    SwarmS3Client(endpoint=endpoint,
+                  obj=obj,
+                  bucket=bucket,
+                  secret=secret,
+                  key=key,
+                  to_ftp=to_ftp).to_ftp()
+    return 201
 
 
 if __name__ == '__main__':

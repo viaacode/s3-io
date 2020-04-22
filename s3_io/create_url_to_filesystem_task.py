@@ -54,7 +54,8 @@ def validate_input(msg):
     if 'path' in msg['destination']:
         logger.info('valid msg for object_key %s and request _id: %s',
                     str(key),
-                    request_id)
+                    request_id,
+                    correlationId=request_id)
         return True
     return False
 
@@ -86,7 +87,8 @@ def process(msg):
         logger.info('task Filesystem task_id: %s for object_key %s to file %s',
                     job_id,
                     key,
-                    dest_path)
+                    dest_path,
+                    cotrrelationId=request_id)
         return celery_task
     # else:
     logger.error('Not a valid message')

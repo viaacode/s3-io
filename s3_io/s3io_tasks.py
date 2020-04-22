@@ -5,7 +5,6 @@ Created on Wed Jan  8 16:25:28 2020
 
 @author: tina
 """
-import configparser
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
 from celery import Celery
@@ -25,10 +24,7 @@ app.conf.task_queues = (Queue('s3io',
 app.conf.task_default_queue = 's3io'
 app.conf.task_default_exchange_type = 'direct'
 app.conf.task_default_routing_key = 's3io'
-config_ = configparser.ConfigParser()
-user = config.app_cfg['S3_TO_FTP']['ftpuser']
-passwd = config.app_cfg['S3_TO_FTP']['ftppassword']
-server = config.app_cfg['S3_TO_FTP']['ftpserver']
+
 s3access_key = config.app_cfg['S3_TO_FTP']['s3access_key']
 s3secret_key = config.app_cfg['S3_TO_FTP']['s3secret_key']
 swarmurl = config.app_cfg['castor']['swarmurl']
@@ -38,8 +34,11 @@ def swarm_to_ftp(self, **body):
     '''FTP to swarm function'''
     dest_path = body['body']['dest_path']
     msg = body['body']
-
-    logger.info('prcessing %s for object_key %s',
+    # todo logic to get user/ pssw from body
+    user = config.app_cfg['S3_TO_FTP']['ftpuser']
+    passwd = config.app_cfg['S3_TO_FTP']['ftppassword']
+    server = config.app_cfg['S3_TO_FTP']['ftpserver']
+    logger.info('processing %s for object_key %s',
                 dest_path,
                 msg['s3']['object']['key'])
     try:
@@ -84,24 +83,23 @@ def swarm_to_remote(self, **body):
                 correlationId=id_,
                 fields=log_fields)
     try:
-        #url = 'http://swarmget.do.viaa.be/' + bucket + '/' + key
         url = 'http://' + swarmurl + '/' + bucket + '/' + key
 
-        f = RemoteCurl(url=url,
-                       dest_path=dest_path,
-                       host=host,
-                       user=user,
-                       password=password,
-                       request_id=id_,
-                       parts=True)()
+        dest_file_path = RemoteCurl(url=url,
+                                    dest_path=dest_path,
+                                    host=host,
+                                    user=user,
+                                    password=password,
+                                    request_id=id_,
+                                    parts=True)()
 
-        return str(f)
-    except Exception as e:
+        return str(dest_file_path)
+    except Exception as all_e:
         logger.error('#### ERROR %s :Task swarm_to_remote failed for id %s ',
-                     str(e),
+                     str(all_e),
                      str(self.request.id),
                      exc_info=True)
-        raise self.retry(coutdown=1, exc=e, max_retries=5)
+        raise self.retry(coutdown=1, exc=all_e, max_retries=5)
 
 
 @app.task(max_retries=3, bind=True)
@@ -115,7 +113,6 @@ def s3_to_ftp(self, **body):
          - Streams from s3 to ftp
 
     """
-    logger.info(body)
     body = body['body']
     # the swager adds qury path to dict, so remove it
     if 's3toftp' in body:
