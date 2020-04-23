@@ -15,8 +15,9 @@ login:
 	login_oc.sh https://do-prd-okp-m0.do.viaa.be:8443
 	oc project "${OC_PROJECT}"
 build:
-	cp ./config.yml.example ./config.yml
-	docker build --no-cache -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
+	echo $${UID}
+	cp ./config.yml.docker ./config.yml
+	docker build --build-arg GUID=`echo $${UID}`  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
 test:
 	docker container run --rm -v `pwd`:/app --name "${APP_NAME}_test" \
 					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
