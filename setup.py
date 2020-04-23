@@ -26,7 +26,7 @@ setup(name='s3_io',
       packages=['s3_io'],
       package_dir={'s3_io': 's3_io'},
       package_data={
-        's3_io': ['_build/*'],
+        's3_io': ['./api/*.yaml'],
       },
       install_requires=[
               'pika==1.1.0',
@@ -43,6 +43,7 @@ setup(name='s3_io',
               'colorama',
               'paramiko==2.7.1',
               'elastic-apm==5.4.3',
+              'connexion==2.6.0',
               'pytest-cov',
               'elasticsearch==6.4.0',
 #              'viaa-chassis @git+https://github.com/viaacode/chassis.py.git#egg=chassis-0.4'

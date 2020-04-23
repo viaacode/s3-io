@@ -25,8 +25,11 @@ WORKDIR /app
 # COPY ./s3_io ./s3io/s3_io
 COPY ./config.yml.docker ./config.yml
 # copy config for tests
+# todo add test stage
+COPY ./tests ./tests
 COPY ./config.yml.docker ./tests/config.yml
-
+#todo volulme for test results injenkins
+# VOLUME
 # envs in openshift from secret so no need for this
 #COPY ./.env ./.env
 #COPY ./source_env.sh /app/source_env.sh
@@ -35,7 +38,7 @@ COPY ./config.yml.docker ./tests/config.yml
 # add user guid and useruid
 ARG GUID=1000
 RUN groupadd -g $GUID -r app && useradd -m -u $GUID -b /home -r -g app app
-
+COPY ./s3_io/api/ ./api
 RUN chown app:app /opt && chmod g+wx /opt
 RUN chown -R app:0 /app && chmod -R g+rwx /app 
 #    chown -R app:0 /home/app/.ssh && chmod -R g+rwx /home/app/.ssh
@@ -63,4 +66,6 @@ ENV CELERY_RES_BACKEND=elasticsearch://eshost:9200/s3io/results
 ENV CELERY_BROKER_URL=amqp://USER:PASSWORD@rabithost:5672/py_workers
 ENV CONSUMER_URI=amqp://USER:PASSWORDA@rabbithost:5672/
 COPY ./entrypoint.sh /app/entrypoint.sh
-ENTRYPOINT ["/app/entrypoint.sh", "s3io-daemon"]
+ENTRYPOINT ["/app/entrypoint.sh"]
+#, "s3io-daemon"]
+CMD s3io-worker
