@@ -24,6 +24,9 @@ WORKDIR /app
 # add app data disabled, Optional
 # COPY ./s3_io ./s3io/s3_io
 COPY ./config.yml.docker ./config.yml
+# copy config for tests
+COPY ./config.yml.docker ./tests/config.yml
+
 # envs in openshift from secret so no need for this
 #COPY ./.env ./.env
 #COPY ./source_env.sh /app/source_env.sh

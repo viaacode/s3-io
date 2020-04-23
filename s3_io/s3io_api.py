@@ -9,7 +9,7 @@ Created on Tue Jan  7 10:50:23 2020
 import json
 import logging
 import connexion
-from flask import request
+from flask import Flask, request
 from s3_io.create_url_to_filesystem_task import process
 from s3_io.task_info import remote_fetch_result
 from s3_io.s3io_tools import SwarmS3Client
@@ -21,6 +21,9 @@ logger = logging.get_logger('s3io', config)
 
 
 logger = logging.get_logger('s3io', config)
+
+
+
 
 def info(task_id):
     '''Gets state of a given task_id, parm state=true for task result'''
@@ -94,10 +97,16 @@ def s3_to_ftp(async_task=True, **body):
                   secret=secret,
                   key=key,
                   to_ftp=to_ftp).to_ftp()
-    return 201
+    return {'msg': 'ok'}, 201
 
+def health():
+    return {'msg': 'ok'}, 200
+
+def create_app():
+
+    app = connexion.App(__name__, port=8080, specification_dir='./api/')
+    app.add_api('s3io-api.yaml', arguments={'title': 'Swarm s3'})
+    return app
 
 if __name__ == '__main__':
-    app = connexion.FlaskApp(__name__, port=9090, specification_dir='./api/')
-    app.add_api('s3io-api.yaml', arguments={'title': 'Swarm s3'})
-    app.run()
+    create_app().run()

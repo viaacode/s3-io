@@ -1,0 +1,32 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    from_chassis: 'True'
+  labels:
+    app: 's3io'
+    name: 's3io-pipeline'
+  name: 's3io-pipeline'
+  namespace: ci-cd
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: {}
+  output: {}
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      ref: master
+      uri: https://github.com/viaacode/s3io.git
+    sourceSecret:
+      name: github
+    type: Git
+  strategy:
+    jenkinsPipelineStrategy:
+      jenkinsfilePath: OpenShift/Jenkinsfile
+    type: JenkinsPipeline
+  successfulBuildsHistoryLimit: 10
+  triggers: []
+status:
+  lastVersion: 0

@@ -7,6 +7,14 @@ servers:
   - url: http://localhost:9090/v1.0
 
 paths:
+  /health:
+    get:
+      tags: [Health]
+      operationId: s3io_api.health
+      summary: Health Check
+      responses:
+        '200':
+          description: Status message from server describing current health
   /remote_fetch/{task_id}:
     get:
       summary: Get task result
