@@ -17,11 +17,12 @@ login:
 build:
 	echo $${UID}
 	cp ./config.yml.docker ./config.yml
-	sudo su -c 'docker build --build-arg GUID=2001 --no-cache  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" . ' tina
+	docker build --build-arg GUID=`echo $${UID}` --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" .
+	docker build --build-arg GUID=`echo $${UID}` --target run-image  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
 test:
-	sudo su -c 'docker container run --rm -v `pwd`:/app --name "${APP_NAME}_test" \
-					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
-					"-m" "pytest" "--cov=./tests" "--junit-xml=./tests/test_results.xml"' tina
+	docker container run --rm -v `pwd`:/app --name "${APP_NAME}_test" \
+					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:tst" \
+					"-m" "pytest" "--cov=./tests" "--junit-xml=./tests/test_results.xml"
 lint:
 	docker container run --name "${APP_NAME}_lint" \
 					--entrypoint flake8 "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \

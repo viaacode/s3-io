@@ -13,7 +13,7 @@ RUN pip install uwsgi &&\
    cd s3io &&\
    python setup.py install
 
-FROM python:3.7-slim AS run-image
+FROM python:3.7-slim AS test-image
 COPY --from=compile-image /opt/venv /opt/venv
 # set timezone
 ENV TZ=Europe/Brussels
@@ -43,8 +43,19 @@ COPY ./s3_io/api/ ./api
 RUN chown app:app /opt && chmod g+wx /opt
 RUN chown -R app:0 /app && chmod -R g+rwx /app &&\
   chown -R app:0 /app && chmod -R g+rwx /app
-USER app
+USER root
+
+# Make sure we use the virtualenv:
+ENV PATH="/opt/venv/bin:$PATH"
+
+#app
+
 RUN ls ./ -ltra
+
+FROM python:3.7-slim AS run-image
+COPY --from=compile-image /opt/venv /opt/venv
+USER app
+
 # Make sure we use the virtualenv:
 ENV PATH="/opt/venv/bin:$PATH"
 ENV testval=123456
@@ -68,6 +79,9 @@ ENV CELERY_RES_BACKEND=elasticsearch://eshost:9200/s3io/results
 ENV CELERY_BROKER_URL=amqp://USER:PASSWORD@rabithost:5672/py_workers
 ENV CONSUMER_URI=amqp://USER:PASSWORDA@rabbithost:5672/
 COPY ./entrypoint.sh /app/entrypoint.sh
+
+
+
 ENTRYPOINT ["/app/entrypoint.sh"]
 #, "s3io-daemon"]
 CMD s3io-worker
