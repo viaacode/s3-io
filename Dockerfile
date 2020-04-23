@@ -36,7 +36,7 @@ COPY ./config.yml.docker ./tests/config.yml
 
 #RUN apt-get update &&  apt-get install -y --no-install-recommends openssh-client nano && apt-get clean && apt-get autoclean 
 # add user guid and useruid
-VOLUME /app
+#VOLUME /app
 ARG GUID=2001
 RUN groupadd -g $GUID -r app && useradd -m -u $GUID -b /home -r -g app app
 COPY ./s3_io/api/ ./api

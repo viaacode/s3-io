@@ -19,9 +19,9 @@ build:
 	cp ./config.yml.docker ./config.yml
 	sudo su -c 'docker build --build-arg GUID=2001 --no-cache  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" . ' tina
 test:
-	docker container run --rm -v `pwd`:/app --name "${APP_NAME}_test" \
+	sudo su -c 'docker container run --rm -v `pwd`:/app --name "${APP_NAME}_test" \
 					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
-					"-m" "pytest" "--cov=./tests" "--junit-xml=./tests/test_results.xml"
+					"-m" "pytest" "--cov=./tests" "--junit-xml=./tests/test_results.xml"' tina
 lint:
 	docker container run --name "${APP_NAME}_lint" \
 					--entrypoint flake8 "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
