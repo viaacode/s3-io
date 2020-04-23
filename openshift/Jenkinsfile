@@ -79,7 +79,7 @@ pipeline {
     post {
         always {
             sh 'make -f ./openshift/Makefile post-clean'
-            junit 'test_result.xml'
+            junit 'tests/test_result.xml'
             cleanWs()
         }
     }

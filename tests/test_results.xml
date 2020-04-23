@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite errors="0" failures="0" hostname="fa34e2954c2e" name="pytest" skipped="0" tests="1" time="3.734" timestamp="2020-04-23T13:09:15.954546"><testcase classname="tests.test_api" file="../home/tina/VIAA/s3io/tests/test_api.py" line="14" name="test_health" time="0.018"></testcase></testsuite></testsuites>

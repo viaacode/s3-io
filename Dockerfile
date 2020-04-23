@@ -36,13 +36,15 @@ COPY ./config.yml.docker ./tests/config.yml
 
 #RUN apt-get update &&  apt-get install -y --no-install-recommends openssh-client nano && apt-get clean && apt-get autoclean 
 # add user guid and useruid
+VOLUME /app
 ARG GUID=1000
 RUN groupadd -g $GUID -r app && useradd -m -u $GUID -b /home -r -g app app
 COPY ./s3_io/api/ ./api
 RUN chown app:app /opt && chmod g+wx /opt
-RUN chown -R app:0 /app && chmod -R g+rwx /app 
-#    chown -R app:0 /home/app/.ssh && chmod -R g+rwx /home/app/.ssh
+RUN chown -R app:0 /app && chmod -R g+rwx /app &&\
+  chown -R app:0 /app && chmod -R g+rwx /app
 USER app
+RUN ls ./ -ltra
 # Make sure we use the virtualenv:
 ENV PATH="/opt/venv/bin:$PATH"
 ENV testval=123456

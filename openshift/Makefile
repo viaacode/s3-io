@@ -16,11 +16,11 @@ login:
 	oc project "${OC_PROJECT}"
 build:
 	cp ./config.yml.example ./config.yml
-	docker build -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
+	docker build --no-cache -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
 test:
-	docker container run --name "${APP_NAME}_test" \
+	docker container run --rm -v `pwd`:/app --name "${APP_NAME}_test" \
 					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
-					"-m" "pytest" "--cov=./tests" "--junit-xml=./test_results.xml"
+					"-m" "pytest" "--cov=./tests" "--junit-xml=./tests/test_results.xml"
 lint:
 	docker container run --name "${APP_NAME}_lint" \
 					--entrypoint flake8 "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
