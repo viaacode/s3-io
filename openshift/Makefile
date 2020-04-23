@@ -17,7 +17,7 @@ login:
 build:
 	echo $${UID}
 	cp ./config.yml.docker ./config.yml
-	docker build --build-arg GUID=`echo $${UID}`  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
+	sudo su -c 'docker build --build-arg GUID=`echo $${UID}`  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" . ' tina
 test:
 	docker container run --rm -v `pwd`:/app --name "${APP_NAME}_test" \
 					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
