@@ -45,6 +45,7 @@ setup(name='s3_io',
               'elastic-apm==5.4.3',
               'connexion==2.6.0',
               'pytest-cov',
+              'flake8',
               'elasticsearch==6.4.0',
 #              'viaa-chassis @git+https://github.com/viaacode/chassis.py.git#egg=chassis-0.4'
       ],
