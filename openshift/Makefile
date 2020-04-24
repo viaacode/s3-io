@@ -18,7 +18,7 @@ build:
 	echo $${UID}
 	cp ./config.yml.docker ./config.yml
 	docker build --build-arg GUID=`echo $${UID}` --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" .
-	docker build --build-arg GUID=`echo $${UID}` --target run-image  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
+	docker build --build-arg GUID=`echo $${UID}` --no-cache  --target run-image  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
 test:
 	docker container run --rm -v `pwd`:/app --name "${APP_NAME}_test" \
 					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:tst" \

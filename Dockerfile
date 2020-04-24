@@ -6,6 +6,8 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 WORKDIR /app
 RUN mkdir s3io
+ARG GUID=2001
+
 COPY /s3_io s3io/s3_io
 COPY setup.py s3io/setup.py
 RUN pip install uwsgi &&\
@@ -13,8 +15,11 @@ RUN pip install uwsgi &&\
    cd s3io &&\
    python setup.py install
 
+###################" TEST IAMGE
+########"
 FROM python:3.7-slim AS test-image
 COPY --from=compile-image /opt/venv /opt/venv
+
 # set timezone
 ENV TZ=Europe/Brussels
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -28,14 +33,6 @@ COPY ./config.yml.docker ./config.yml
 # todo add test stage
 COPY ./tests ./tests
 COPY ./config.yml.docker ./tests/config.yml
-#todo volulme for test results injenkins
-# VOLUME
-# envs in openshift from secret so no need for this
-#COPY ./.env ./.env
-#COPY ./source_env.sh /app/source_env.sh
-
-#RUN apt-get update &&  apt-get install -y --no-install-recommends openssh-client nano && apt-get clean && apt-get autoclean 
-# add user guid and useruid
 #VOLUME /app
 ARG GUID=2001
 RUN groupadd -g $GUID -r app && useradd -m -u $GUID -b /home -r -g app app
@@ -44,16 +41,40 @@ RUN chown app:app /opt && chmod g+wx /opt
 RUN chown -R app:0 /app && chmod -R g+rwx /app &&\
   chown -R app:0 /app && chmod -R g+rwx /app
 USER root
-
 # Make sure we use the virtualenv:
 ENV PATH="/opt/venv/bin:$PATH"
-
 #app
-
 RUN ls ./ -ltra
 
+
+####################### RUN IMAGE
+#########
+
 FROM python:3.7-slim AS run-image
+ARG GUID=2001
+
 COPY --from=compile-image /opt/venv /opt/venv
+WORKDIR /app
+
+RUN groupadd -g $GUID -r app && useradd -m -u $GUID -b /home -r -g app app
+COPY ./s3_io/api/ ./api
+RUN chown app:app /opt && chmod g+wx /opt
+RUN chown -R app:0 /app && chmod -R g+rwx /app &&\
+  chown -R app:0 /app && chmod -R g+rwx /app
+# set timezone
+ENV TZ=Europe/Brussels
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+#VOLUME /home/app/.ssh
+WORKDIR /app
+
+# add app data disabled, Optional
+# COPY ./s3_io ./s3io/s3_io
+COPY ./config.yml.docker ./config.yml
+# copy config for tests
+# todo add test stage
+COPY ./tests ./tests
+COPY ./config.yml.docker ./tests/config.yml
+
 USER app
 
 # Make sure we use the virtualenv:
