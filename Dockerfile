@@ -7,6 +7,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 WORKDIR /app
 RUN mkdir s3io
 ARG GUID=2001
+ENV GUID=$GUID
 
 COPY /s3_io s3io/s3_io
 COPY setup.py s3io/setup.py
