@@ -35,7 +35,9 @@ COPY ./tests ./tests
 COPY ./config.yml.docker ./tests/config.yml
 #VOLUME /app
 ARG GUID=2001
+ENV GUID=2001
 RUN groupadd -g $GUID -r app && useradd -m -u $GUID -b /home -r -g app app
+
 COPY ./s3_io/api/ ./api
 RUN chown app:app /opt && chmod g+wx /opt
 RUN chown -R app:0 /app && chmod -R g+rwx /app &&\
@@ -52,7 +54,7 @@ RUN ls ./ -ltra
 
 FROM python:3.7-slim AS run-image
 ARG GUID=2001
-
+ENV GUID=$GUID
 COPY --from=compile-image /opt/venv /opt/venv
 WORKDIR /app
 
