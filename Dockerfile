@@ -55,7 +55,7 @@ RUN ls ./ -ltra
 
 FROM python:3.7-slim AS run-image
 ARG GUID=2001
-ENV GUID=$GUID
+ENV GUID=2001
 COPY --from=compile-image /opt/venv /opt/venv
 WORKDIR /app
 
