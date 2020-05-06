@@ -349,7 +349,7 @@ class RemoteCurl():
         cmd = """cd "{}" &&
         if [ -f "{}" ]; then echo ERROR file exists! & exit 1;fi
         SAVEIFS=$IFS
-        IFS=$(echo -en "\\n\\b");for i in $(ls *_part_?);do cat "$i" >> "{}.part" && mv "{}.part " "{}";done && echo "SUCCESS";IFS=$SAVEIFS
+        IFS=$(echo -en "\\n\\b");for i in $(ls *_part_?);do cat "$i" >> "{}.part" ;done && mv "{}.part " "{}" && echo "SUCCESS";IFS=$SAVEIFS
         cd ..
         rm -rf "{}" ||echo ERROR & exit 1; echo SUCCESS""".format(
             self.tmp_dir_parts,
