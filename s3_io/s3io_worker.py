@@ -19,6 +19,7 @@ import sys
 import threading
 import atexit
 from s3_io.event_consumer import __main__ as Consume
+from s3_io.s3io_api import __main__ as Api
 from s3_io.s3io_tasks import app
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
@@ -93,7 +94,20 @@ def quit_gracefully(t=None):
             logger.error(str(e),
                          exc_info=True)
 
+    exit(0)
 
+def s3_api():
+    try:
+        logger.info('*********** Starting API ************')
+        Api()
+        logger.warning("Consumer is dead killing worker and process",
+                       exc_info=True)
+        atexit.register(quit_gracefully)
+    except Exception as e:
+        logger.error(str(e),
+                     exc_info=True)
+        atexit.register(quit_gracefully)
+        logger.info('SHUTTING DOWN')
 
 def __event_consumer__():
     try:
@@ -129,6 +143,9 @@ def worker():
 def __main__():
     try:
         thread = threading.Thread(target=worker)
+        api_thread = threading.Thread(target=s3_api)
+        api_thread.daemon = False
+        api_thread.start()
         thread.daemon = False
         thread.start()
         logger.info('consumer joining')

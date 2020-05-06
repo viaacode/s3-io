@@ -108,5 +108,9 @@ def create_app():
     app.add_api('s3io-api.yaml', arguments={'title': 'Swarm s3'})
     return app
 
+
+def __main__():
+    create_app().run()
+
 if __name__ == '__main__':
     create_app().run()
