@@ -56,11 +56,10 @@ paths:
 
       parameters:
         - in: header
-          name: x-meemoo-request-id
+          name: x-request-id
           schema:
             type: string
-            format: uuid
-          required: true
+          required: false
 
   /s3_to_ftp/:
     post:
@@ -80,11 +79,10 @@ paths:
 
       parameters:
         - in: header
-          name: x-meemoo-request-id
+          name: x-request-id
           schema:
             type: string
-            format: uuid
-          required: true
+          required: false
         - name: async
           in: query
           description: create a job or not
