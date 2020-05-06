@@ -7,6 +7,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 WORKDIR /app
 RUN mkdir s3io
 ARG GUID=2001
+ENV GUID=$GUID
 
 COPY /s3_io s3io/s3_io
 COPY setup.py s3io/setup.py
@@ -35,7 +36,9 @@ COPY ./tests ./tests
 COPY ./config.yml.docker ./tests/config.yml
 #VOLUME /app
 ARG GUID=2001
+ENV GUID=2001
 RUN groupadd -g $GUID -r app && useradd -m -u $GUID -b /home -r -g app app
+
 COPY ./s3_io/api/ ./api
 RUN chown app:app /opt && chmod g+wx /opt
 RUN chown -R app:0 /app && chmod -R g+rwx /app &&\
@@ -52,7 +55,7 @@ RUN ls ./ -ltra
 
 FROM python:3.7-slim AS run-image
 ARG GUID=2001
-
+ENV GUID=2001
 COPY --from=compile-image /opt/venv /opt/venv
 WORKDIR /app
 
