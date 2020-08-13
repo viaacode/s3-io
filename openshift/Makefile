@@ -17,13 +17,8 @@ login:
 build:
 	echo $${UID}
 	cp ./config.yml.docker ./config.yml
-<<<<<<< HEAD
-	docker build --build-arg GUID=`echo $${UID}` --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" .
-	docker build --build-arg GUID=`echo $${UID}` --no-cache  --target run-image  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
-=======
-	docker build --build-arg GUID=2001 --no-cache--target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" .
+	docker build --build-arg GUID=2001 --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" .
 	docker build --build-arg GUID=`echo $${UID}` --target run-image  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
->>>>>>> 2e383e37297e2a4f639e9d5b54b61e60aea19515
 test:
 	docker container run --rm -v `pwd`:/app --name "${APP_NAME}_test" \
 					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:tst" \

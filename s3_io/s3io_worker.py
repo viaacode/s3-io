@@ -28,20 +28,20 @@ from celery.signals import setup_logging, task_postrun, task_prerun
 from celery.result import AsyncResult
 
 config = ConfigParser()
-rabbit = RabbitMQHandlerOneWay(
-     host=config.config['logging']['RabPub']['host'],
-     username=config.config['logging']['RabPub']['user'],
-     password=config.config['logging']['RabPub']['passw'],
-     fields_under_root=True,
-     port=5672)
+# rabbit = RabbitMQHandlerOneWay(
+#      host=config.config['logging']['RabPub']['host'],
+#      username=config.config['logging']['RabPub']['user'],
+#      password=config.config['logging']['RabPub']['passw'],
+#      fields_under_root=True,
+#      port=5672)
 logger = logging.get_logger('s3io', config)
 
 
-def add_rabbithandler():
-    """ADD a log handle to get task results in log"""
-    _logger = logging.get_logger('s3io', config)
-    if 'RabbitMQHandlerOneWay' not in logger.handlers:
-        _logger.addHandler(rabbit)
+# def add_rabbithandler():
+#     """ADD a log handle to get task results in log"""
+#     _logger = logging.get_logger('s3io', config)
+#     if 'RabbitMQHandlerOneWay' not in logger.handlers:
+#         _logger.addHandler(rabbit)
 
 
 @task_postrun.connect
@@ -57,19 +57,19 @@ def log_task_complete(sender, task_id, task, args,  **kwargs):
 def log_task_Started(sender, task_id, task, args, **kwargs):
     """RUNS ON TASK START"""
     try:
-        add_rabbithandler()
-        fields = {
+       # add_rabbithandler()
+        extra = {
             'celery_task_id': task_id,
             'celery_task_name': str(task),
             'x-viaa-request-id': task_id}
         logger.info("prerun task: %s task_id: %s ",
                     str(task),
                     str(task_id),
-                    fields=fields)
+                    extra=extra)
     except Exception as e:
         logger.error("error adding handler : %s/",
                      str(e),
-                     exc_info=True)
+                     exc_info=True,extra=extra)
 
 
 # to mess celery log you need this below

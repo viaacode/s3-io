@@ -5,7 +5,8 @@ Created on Wed Jan  8 16:25:28 2020
 
 @author: tina
 """
-from viaa.observability import logging
+#from viaa.observability import logging
+import logging
 from viaa.configuration import ConfigParser
 from celery import Celery
 from kombu import Exchange, Queue
@@ -16,7 +17,7 @@ from s3_io.remote_curl import RemoteCurl
 app = Celery('s3io',)
 app.config_from_object(celeryconfig)
 config = ConfigParser()
-logger = logging.get_logger('s3io', config)
+logger = logging.getLogger('s3io')
 app.config_from_object(celeryconfig)
 app.conf.task_queues = (Queue('s3io',
                               Exchange('py-worker-s3io'),
@@ -80,8 +81,7 @@ def swarm_to_remote(self, **body):
     logger.info('process %s for object_key %s',
                 dest_path,
                 body['source']['object']['key'],
-                correlationId=id_,
-                fields=log_fields)
+                extra=log_fields)
     try:
         url = 'http://' + swarmurl + '/' + bucket + '/' + key
 

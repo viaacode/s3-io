@@ -12,9 +12,9 @@ ENV GUID=$GUID
 COPY /s3_io s3io/s3_io
 COPY setup.py s3io/setup.py
 RUN pip install uwsgi &&\
-   pip install git+https://github.com/violetina/chassis.py.git &&\
+   pip install git+https://github.com/viaacode/chassis.py.git@development &&\
    cd s3io &&\
-   python setup.py install
+   python setup.py install && pip install connexion[swagger-ui]
 
 ###################" TEST IAMGE
 ########"

@@ -15,12 +15,17 @@ Created on Tue Mar  3 14:12:09 2020
 """
 
 import uuid
-from viaa.observability import logging
+import logging
+#from viaa.observability import logging
 from viaa.configuration import ConfigParser
 from s3_io.s3io_tasks import swarm_to_remote
 
 config = ConfigParser()
-logger = logging.get_logger('s3io', config)
+logger = logging.getLogger('s3io.task_creator')
+extra= {'app_name':'s3io',
+        'correlationId':'HELLO fallback'}
+logger = logging.LoggerAdapter(logger, extra)
+
 rnd = str(uuid.uuid4().hex)
 debug_msg = {"service_type": "celery",
              "service_name": "s3_to_filesystem",
@@ -50,12 +55,17 @@ def validate_input(msg):
 
     request_id = msg["x-request-id"]
     key = msg['source']['object']['key']
-
+    f={}
+    extra={'app_name':'s3io',
+           'correlationId':request_id}
+    val_logger = logging.getLogger('s3io.task_creator')
+    val_logger = logging.LoggerAdapter(val_logger, extra)
     if 'path' in msg['destination']:
-        logger.info('valid msg for object_key %s and request _id: %s',
+        val_logger.info('valid msg for object_key %s and request _id: %s',
                     str(key),
                     request_id,
-                    correlationId=request_id)
+                    extra=extra
+                   )
         return True
     return False
 
@@ -84,15 +94,21 @@ def process(msg):
         job = swarm_to_remote.s(body=msg)
         celery_task = job.apply_async(retry=True)
         job_id = celery_task.id
-        logger.info('task Filesystem task_id: %s for object_key %s to file %s',
+        extra={'app_name':'s3io',
+               'correlationId':request_id}
+        val_logger = logging.getLogger('s3io.task_creator')
+        val_logger = logging.LoggerAdapter(val_logger, extra)
+
+
+        val_logger.info('task Filesystem task_id: %s for object_key %s to file %s',
                     job_id,
                     key,
-                    dest_path,
-                    cotrrelationId=request_id)
+                    dest_path,)
+                    # cotrrelationId=request_id)
         return celery_task
     # else:
     logger.error('Not a valid message')
     return True
 
-if __name__ == "__main__":
-    process(debug_msg)
+# if __name__ == "__main__":
+#     process(debug_msg)
