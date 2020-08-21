@@ -64,4 +64,3 @@ approved:
 
 post-clean:
 	docker container rm "${APP_NAME}_test"
-	docker container rm "${APP_NAME}_lint"
