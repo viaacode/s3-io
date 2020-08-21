@@ -18,14 +18,16 @@ build-local: login
 	rm /tmp/s3io -rf 2>/dev/null ;cd /tmp && git clone ${REPO} && cd s3io && cat README.md &&
 	docker build --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" .
 
+dummy-env:
+	export `egrep -v '^#' dummy.envs | xargs` && echo "$${REMOTECURL_HOST}"
 
 build:
 	echo $${UID}
 	cp ./config.yml.docker ./config.yml
 	docker build --build-arg GUID=`echo $${UID}` --target run-image  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
-test:
+test: dummy-env
 	docker build --build-arg GUID=2001 --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" . &&
-	docker rm ${APP_NAME}_test 2>/dev/null ; docker container run -v `pwd`:/app --name "${APP_NAME}_test" \
+	docker rm ${APP_NAME}_test 2>/dev/null ; docker container run --env-file dummy.envs -v `pwd`:/app --name "${APP_NAME}_test" \
 					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:tst" \
 					"-m" "pytest" "--cov=./tests" "--junit-xml=./tests/test_results.xml" &&
 	docker commit "${APP_NAME}_test" s3iotests:${VERSION} &&
