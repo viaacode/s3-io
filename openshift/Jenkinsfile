@@ -80,6 +80,7 @@ pipeline {
         always {
             sh 'make -f ./openshift/Makefile post-clean'
             junit 'tests/test_results.xml'
+            junit 'tests/s3io_lint.xml'
             cleanWs()
         }
     }

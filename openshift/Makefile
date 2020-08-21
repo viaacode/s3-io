@@ -33,10 +33,14 @@ test: dummy-env
 	docker commit "${APP_NAME}_test" s3iotests:${VERSION} &&
 	docker run -t --entrypoint=sh s3iotests:${VERSION} -c "cat tests/test_results.xml" > tests/test_results.xml
 lint:
+	docker rm ${APP_NAME}_lint 2>/dev/null &&
 	docker container run --name "${APP_NAME}_lint" \
 					--entrypoint flake8 "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
 					--exit-zero \
-					--max-line-length=88
+					--max-line-length=88 > ${APP_NAME}_lint.txt &&
+	docker commit "${APP_NAME}_lint" s3iolint:${VERSION} && 
+	docker run -t --entrypoint=sh s3iolint:${VERSION} -c "flake8 > s3io_lint.txt; flake8_junit s3io_lint.txt s3io_lint.xml; cat s3io_lint.xml " > tests/s3io_lint.xml
+
 push: 	login
 	docker push ${REGISTRY}/${IMAGE_NAME}:${VERSION}
 
