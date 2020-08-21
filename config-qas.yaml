@@ -1,0 +1,26 @@
+viaa:
+  logging:
+    level: INFO
+app:
+  RemoteCurl:
+    user: root
+    host: do-prd-tra-02.do.viaa.be
+    domain_header: s3-qas.viaa.be
+    passw: zeticon0331
+  DownloadChunks:
+    domain: s3-qas.viaa.be
+  castor:
+    swarmurl: swarmget.do.viaa.be
+    domain: s3-qas.viaa.be
+  S3_TO_FTP:
+    ftpuser: ftphaven
+    ftppassword: ftphavenQAS15
+    ftpserver: ftp-qas.viaa.be
+    s3access_key: 0696729948801d839528d9a160f65317
+    s3secret_key: l0ggrtst
+  Celery:
+    s3_result_backend: elasticsearch://do-prd-lst-01.do.viaa.be:9200/s3io/results
+    broker_url: amqp://admin:Nq8_Hd2-n3:A@mq-prd.do.viaa.be:5672/py_workers
+  RabCon:
+    uri: amqp://admin:Nq8_Hd2-n3:A@mq-prd.do.viaa.be:5672/
+    vhost: /

@@ -33,17 +33,17 @@ debug_msg = {"service_type": "celery",
              "x-request-id": rnd,
              "source": {
                  "domain": {
-                     "name": "s3-qas.xx.xx"},
+                     "name": "s3-qas.viaa.be"},
                  "bucket": {
-                     "name": "tests3vents"},
+                     "name": "mam-highresvideo"},
                  "object": {
-                     "key": "0k2699098k-left.mp4"}
+                     "key": "202007241019597010024191220005056B94C300000016432B00000D0F003957.mxf"}
                  },
              "destination": {
-                 "path": "/mnt/temptina/" + rnd + ".MXF",
-                 "host": "xxxx",
-                 "user": "xxx",
-                 "password":'xxxx',}}
+                 "path": "/home/tina/" + rnd + ".MXF",
+                 "host": "dg-qas-tra-01.dg.viaa.be",
+                 "user": "tina",
+                 "password":'gentootin@02106',}}
 
 
 def validate_input(msg):
@@ -110,5 +110,5 @@ def process(msg):
     logger.error('Not a valid message')
     return True
 
-# if __name__ == "__main__":
-#     process(debug_msg)
+if __name__ == "__main__":
+    process(debug_msg)

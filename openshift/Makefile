@@ -1,5 +1,5 @@
 VERSION = ${shell (git describe --tags || echo latest)}
-
+REPO = https://github.com/viaacode/s3io.git
 .ONESHELL:
 SHELL = /bin/bash
 
@@ -14,15 +14,22 @@ REGISTRY = docker-registry-default.apps.do-prd-okp-m0.do.viaa.be
 login:
 	login_oc.sh https://do-prd-okp-m0.do.viaa.be:8443
 	oc project "${OC_PROJECT}"
+build-local: login
+	rm /tmp/s3io -rf 2>/dev/null ;cd /tmp && git clone ${REPO} && cd s3io && cat README.md &&
+	docker build --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" .
+
+
 build:
 	echo $${UID}
 	cp ./config.yml.docker ./config.yml
-	docker build --build-arg GUID=2001 --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" .
 	docker build --build-arg GUID=`echo $${UID}` --target run-image  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
 test:
-	docker container run --rm -v `pwd`:/app --name "${APP_NAME}_test" \
+	docker build --build-arg GUID=2001 --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" . &&
+	docker rm ${APP_NAME}_test 2>/dev/null ; docker container run -v `pwd`:/app --name "${APP_NAME}_test" \
 					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:tst" \
-					"-m" "pytest" "--cov=./tests" "--junit-xml=./tests/test_results.xml"
+					"-m" "pytest" "--cov=./tests" "--junit-xml=./tests/test_results.xml" &&
+	docker commit "${APP_NAME}_test" s3iotests:${VERSION} &&
+	docker run -t --entrypoint=sh s3iotests:${VERSION} -c "cat tests/test_results.xml" > tests/test_results.xml
 lint:
 	docker container run --name "${APP_NAME}_lint" \
 					--entrypoint flake8 "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
