@@ -26,8 +26,8 @@ build:
 	cp ./config.yml.docker ./config.yml
 	docker build --build-arg GUID=`echo $${UID}` --target run-image  -t "${REGISTRY}/${IMAGE_NAME}:${VERSION}" .
 test: dummy-env
-	docker build --build-arg GUID=2001 --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" . &&
-	docker rm ${APP_NAME}_test 2>/dev/null ; docker container run --env-file dummy.envs -v `pwd`:/app --name "${APP_NAME}_test" \
+	docker build --target test-image -t "${REGISTRY}/${IMAGE_NAME}:tst" . &&
+	docker rm ${APP_NAME}_test 2>/dev/null ; docker container run --env-file dummy.envs --name "${APP_NAME}_test" \
 					--entrypoint python "${REGISTRY}/${IMAGE_NAME}:tst" \
 					"-m" "pytest" "--cov=./tests" "--junit-xml=./tests/test_results.xml" &&
 	docker commit "${APP_NAME}_test" s3iotests:${VERSION} &&
