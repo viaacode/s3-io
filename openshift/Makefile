@@ -39,7 +39,7 @@ lint:
 #					--entrypoint flake8 "${REGISTRY}/${IMAGE_NAME}:${VERSION}" \
 #					--exit-zero \
 #					--max-line-length=88 > ${APP_NAME}_lint.txt &&
-	docker run -t --entrypoint=sh ${REGISTRY}/${IMAGE_NAME}:tst -c "flake8 > s3io_lint.txt; flake8_junit s3io_lint.txt 1>/dev/null s3io_lint.xml; cat s3io_lint.xml " > tests/s3io_lint.xml
+	docker run -t --entrypoint=sh "${REGISTRY}/${IMAGE_NAME}:${VERSION}" -c "flake8 > s3io_lint.txt; flake8_junit s3io_lint.txt 1>/dev/null s3io_lint.xml; cat s3io_lint.xml " > tests/s3io_lint.xml
 
 push: 	login
 	docker push ${REGISTRY}/${IMAGE_NAME}:${VERSION}
