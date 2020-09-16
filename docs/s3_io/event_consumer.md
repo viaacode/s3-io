@@ -14,11 +14,6 @@ Description:
 
 - `-` *body* - json
 
-- `-` *headers* - "x-meemoo-request-id" required!
+- `-` *headers* - "x-request-id" required!
 
 - `@author` - tina
-
-#### Attributes
-
-- `logger` - config_.read('/etc/viaa-workers/config.ini')
-  swarmurl = config_['castor']['swarmurl']: `logging.get_logger('s3io', config)`

@@ -13,7 +13,7 @@ Created on Wed Jan  8 16:25:28 2020
 
 ## s3_to_ftp
 
-[[find in source code]](../../s3_io/s3io_tasks.py#L113)
+[[find in source code]](../../s3_io/s3io_tasks.py#L108)
 
 ```python
 @app.task(max_retries=3, bind=True)
@@ -30,7 +30,7 @@ Description:
 
 ## swarm_to_ftp
 
-[[find in source code]](../../s3_io/s3io_tasks.py#L36)
+[[find in source code]](../../s3_io/s3io_tasks.py#L33)
 
 ```python
 @app.task(max_retries=5, bind=True)
@@ -41,7 +41,7 @@ FTP to swarm function
 
 ## swarm_to_remote
 
-[[find in source code]](../../s3_io/s3io_tasks.py#L68)
+[[find in source code]](../../s3_io/s3io_tasks.py#L62)
 
 ```python
 @app.task(max_retries=5, bind=True)

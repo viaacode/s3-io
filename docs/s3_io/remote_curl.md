@@ -3,12 +3,12 @@
 > Auto-generated documentation for [s3_io.remote_curl](../../s3_io/remote_curl.py) module.
 
 Created on Fri Aug  2 13:11:15 2019
-Remote curl space checker:
+Remote curl:
 
 - [S3io](../README.md#s3io) / [Modules](../MODULES.md#s3io-modules) / [S3 Io](index.md#s3-io) / RemoteCurl
     - [RemoteCurl](#remotecurl)
         - [RemoteCurl().\_\_call\_\_](#remotecurl__call__)
-        - [RemoteCurl().downloadChunk](#remotecurldownloadchunk)
+        - [RemoteCurl().download_chunk](#remotecurldownload_chunk)
         - [RemoteCurl().dwnl_parts](#remotecurldwnl_parts)
         - [RemoteCurl().remote_get](#remotecurlremote_get)
     - [build_range](#build_range)
@@ -17,7 +17,7 @@ Remote curl space checker:
     - [remote_fetch](#remote_fetch)
     - [timeit](#timeit)
 
-Gdownload file with curl over ssh with paramiko
+download file with curl over ssh with paramiko
 
 #### Examples
 
@@ -29,7 +29,7 @@ r=RemoteCurl(url="http://10.50.152.194:80/tests3vents/0k2699098k-left.mp4", dest
 
 ## RemoteCurl
 
-[[find in source code]](../../s3_io/remote_curl.py#L158)
+[[find in source code]](../../s3_io/remote_curl.py#L169)
 
 ```python
 class RemoteCurl():
@@ -61,7 +61,7 @@ class RemoteCurl():
 
 ### RemoteCurl().\_\_call\_\_
 
-[[find in source code]](../../s3_io/remote_curl.py#L386)
+[[find in source code]](../../s3_io/remote_curl.py#L396)
 
 ```python
 def __call__():
@@ -69,13 +69,13 @@ def __call__():
 
 Run remote_get
 
-### RemoteCurl().downloadChunk
+### RemoteCurl().download_chunk
 
-[[find in source code]](../../s3_io/remote_curl.py#L241)
+[[find in source code]](../../s3_io/remote_curl.py#L252)
 
 ```python
 @timeit
-def downloadChunk(
+def download_chunk(
     idx,
     irange,
     url,
@@ -101,7 +101,7 @@ Description:
 
 ### RemoteCurl().dwnl_parts
 
-[[find in source code]](../../s3_io/remote_curl.py#L278)
+[[find in source code]](../../s3_io/remote_curl.py#L286)
 
 ```python
 @timeit
@@ -116,12 +116,14 @@ Download parts
 
 ### RemoteCurl().remote_get
 
-[[find in source code]](../../s3_io/remote_curl.py#L215)
+[[find in source code]](../../s3_io/remote_curl.py#L227)
 
 ```python
 @timeit
 def remote_get():
 ```
+
+Remote download from swarm to local filesystem curl + ssh
 
 #### See also
 
@@ -129,7 +131,7 @@ def remote_get():
 
 ## build_range
 
-[[find in source code]](../../s3_io/remote_curl.py#L56)
+[[find in source code]](../../s3_io/remote_curl.py#L57)
 
 ```python
 def build_range(value, numsplits):
@@ -139,27 +141,27 @@ Returns list with ranges for parts download
 
 ## chunks
 
-[[find in source code]](../../s3_io/remote_curl.py#L50)
+[[find in source code]](../../s3_io/remote_curl.py#L51)
 
 ```python
-def chunks(lst, n):
+def chunks(lst, n_r):
 ```
 
 Yield successive n-sized chunks from lst.
 
 ## decorator
 
-[[find in source code]](../../s3_io/remote_curl.py#L29)
+[[find in source code]](../../s3_io/remote_curl.py#L30)
 
 ```python
-def decorator(d):
+def decorator(func_n):
 ```
 
 Make function d a decorator: d wraps a function fn.
 
 ## remote_fetch
 
-[[find in source code]](../../s3_io/remote_curl.py#L72)
+[[find in source code]](../../s3_io/remote_curl.py#L73)
 
 ```python
 def remote_fetch(
@@ -178,7 +180,7 @@ Remote download from swarm to local filesystem curl + ssh
 
 ## timeit
 
-[[find in source code]](../../s3_io/remote_curl.py#L37)
+[[find in source code]](../../s3_io/remote_curl.py#L38)
 
 ```python
 @decorator

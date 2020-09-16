@@ -17,10 +17,9 @@ from s3_io.s3io_tasks import swarm_to_ftp, s3_to_ftp as s3_to_ftp_task
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
 config = ConfigParser()
-logger = logging.get_logger('s3io', config)
 
 
-logger = logging.get_logger('s3io', config)
+logger = logging.get_logger('s3io.api', config)
 
 
 

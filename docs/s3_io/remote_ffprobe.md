@@ -11,7 +11,7 @@ Created on Sat Apr  4 10:52:53 2020
 
 ## remote_ffprobe
 
-[[find in source code]](../../s3_io/remote_ffprobe.py#L11)
+[[find in source code]](../../s3_io/remote_ffprobe.py#L17)
 
 ```python
 def remote_ffprobe(mediafile, host=None, user=None):

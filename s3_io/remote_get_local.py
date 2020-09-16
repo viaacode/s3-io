@@ -6,13 +6,11 @@ Created on Sat Apr  4 11:00:16 2020
 @author: tina
 """
 
-import json
 import paramiko
-from viaa.observability import logging#, correlation
-from viaa.observability.correlation import CorrelationID
+from viaa.observability import logging
 from viaa.configuration import ConfigParser
 config = ConfigParser()
-logger = logging.get_logger('s3io', config)
+logger = logging.get_logger('s3_auditlog_parser', config)
 
 
 def remote_get(url, dest_path):

@@ -11,7 +11,7 @@ Created on Sat Apr  4 11:00:16 2020
 
 ## remote_get
 
-[[find in source code]](../../s3_io/remote_get_local.py#L11)
+[[find in source code]](../../s3_io/remote_get_local.py#L16)
 
 ```python
 def remote_get(url, dest_path):

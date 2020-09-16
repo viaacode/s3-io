@@ -20,11 +20,11 @@ import threading
 from functools import update_wrapper
 import paramiko
 import requests
-import logging
+from viaa.observability import logging
+
 from viaa.configuration import ConfigParser
 config = ConfigParser()
-logger = logging.getLogger('s3io.remote_curl')
-extra= {'app_name':'s3io'}
+logger = logging.get_logger('s3io.remote_curl')
 
 
 def decorator(func_n):
@@ -74,17 +74,12 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                  headers=None, request_id=None):
     """Remote download from swarm to local filesystem curl + ssh"""
     extra = {'host': host,
-              'user': user,
-              'dest_path': dest_path,
-              'headers': headers}
-    val_logger = logging.getLogger('s3io.remote_curl')
-
-    val_logger = logging.LoggerAdapter(val_logger, extra)
-    val_logger.debug('*****LOG extra*************: ' + str(extra))
-
-    val_logger.info("Remote curl start from server %s",
+             'user': user,
+             'dest_path': dest_path,
+             'headers': headers}
+    logger.info("Remote curl start from server %s",
                 host,
-                extra={'correlationId':request_id})
+                correlationId=request_id)
     remote_client = paramiko.SSHClient()
     remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     remote_client.connect(host,
@@ -97,73 +92,75 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
     if tmp_dir:
         logger.debug('create tmp_dir: %s', tmp_dir)
         cmd = """mkdir -p "{}"; """.format(tmp_dir) + cmd
-    extra={'app_name':'s3io',
-           'correlationId':request_id}
-    val_logger = logging.getLogger('s3io.remote_curl')
-    val_logger = logging.LoggerAdapter(val_logger, extra)
-
-    val_logger.info("Starting Remote CURL on %s: %s",
+    extra = {'app_name': 's3io',
+             'correlationId': request_id}
+    logger.info("Starting Remote CURL on %s: %s",
                 host,
                 str(cmd),
-                extra=extra)
+                extra=extra,
+                correlationId=request_id)
     try:
         _stdin, stdout, stderr = remote_client.exec_command(cmd)
         out = stdout.readlines()
         err = stderr.readlines()
-        logger.debug("stdout: " + str(out) + "stderr: "+ str(err))
+        logger.debug("stdout: " + str(out) + "stderr: " + str(err))
         if stdout != []:
             result = 'SUCCESS'
             speed = str(out[0]).split(',')
             print(str(speed))
             extra = {'speed': speed[0],
-                      'status_code': speed[1],
-                      'filesize:': speed[2],
-                      'source_url': speed[3],
-                      'total_runtime': speed[4],
-                      'x-request-id': request_id,
-                      'RESULT': 'FINISED'}
-            logging.LoggerAdapter(logger, extra)
+                     'status_code': speed[1],
+                     'filesize:': speed[2],
+                     'source_url': speed[3],
+                     'total_runtime': speed[4],
+                     'x-request-id': request_id,
+                     'RESULT': 'FINISED'}
+
 
             logger.info('setting stats in extra.. speed: %s Bytes/s,\
                         took: %s seconds',
                         speed[0],
                         speed[4],
-                        extra=extra)
+                        extra=extra,
+                        correlationId=request_id
+                        )
 
             extra['RESULT'] = 'SUCCESS'
             extra['x-request-id'] = request_id
-            logging.LoggerAdapter(logger, extra)
 
             logger.info('SUCCESS for fetching %s: %s ',
                         str(speed[3]),
                         str(result),
-                        extra=extra)
+                        correlationId=request_id,
+                        extra=extra,
+
+                        )
         else:
             extra['RESULT'] = 'FAILED'
             extra['x-request-id'] = request_id
             bash_error = str(stderr.readlines())
 
-            err_logger = logging.LoggerAdapter(logger, extra)
-            err_logger.error('ERROR fetching: %s, ERROR: %s', dest_path,
-                             bash_error,
-                             exc_info=True,
-                             extra=extra)
+            logger.error('ERROR fetching: %s, ERROR: %s', dest_path,
+                         bash_error,
+                         exc_info=True,
+                         correlationId=request_id,
+                         extra=extra)
 
         remote_client.close()
     except IOError as io_e:
         extra['RESULT'] = 'FAILED'
         extra['x-request-id'] = request_id
-        logging.LoggerAdapter(logger, extra)
         logger.error("failed to fetch url:%s, ERROR: %s",
                      url, str(io_e),
+                     correlationId=request_id,
                      extra=extra)
 
     except ValueError as val_e:
         extra['RESULT'] = 'FAILED'
-        logging.LoggerAdapter(logger, extra)
         logger.error(str(stdout.readlines()),
                      str(stderr.readlines()),
                      str(val_e),
+                     correlationId=request_id,
                      extra=extra)
 
     return dest_path
@@ -211,11 +208,6 @@ class RemoteCurl():
             self.user = config.app_cfg['RemoteCurl']['user']
         self.url = url
         self.dest_path = dest_path
-        # create tmp_dir
-        # dir_, file_name = os.path.split(self.dest_path)
-        # base_name, _e = os.path.splitext(file_name)
-        # base_name = os.path.basename(os.path.normpath(base_name))
-        # self.tmp_dir = dir_ + "/." + base_name
         if password is None:
             self.password = config.app_cfg['RemoteCurl']['host']
         if headers:
@@ -243,11 +235,10 @@ class RemoteCurl():
                  'user': self.user,
                  'dest_path': self.dest_path,
                  'headers': self.headers}
-        logging.LoggerAdapter(logger, extra)
 
-        logger.info("Remote curl start from server %s",
-                    self.host,
-                    extra=extra)
+        logger.debug("Remote curl start from server %s",
+                     self.host,
+                     extra=extra)
 
         remote_fetch(self.host,
                      self.user,
@@ -290,8 +281,7 @@ class RemoteCurl():
                      self.tmp_dir_parts,
                      self.headers,
                      self.request_id)
-        logger.info('Chunck %s downloaded to :%s', self.dest_path_parts,
-                    self.tmp_dir_parts)
+        logger.info("Part complate", correlationId=self.request_id)
 
     @timeit
     def dwnl_parts(self):
@@ -300,7 +290,6 @@ class RemoteCurl():
         extra = {'RESULT': 'SCHEDULED',
                  'x-request-id': self.request_id}
 
-        logging.LoggerAdapter(logger, extra)
 
         size_in_bytes = requests.head(
             self.url,
@@ -310,11 +299,14 @@ class RemoteCurl():
             ).headers.get('content-length', None)
         logger.info("%s bytes to download. url: %s",
                     str(size_in_bytes), str(self.url),
+                    correlationId=self.request_id,
                     extra=extra)
         if not size_in_bytes:
             logger.error("Size cannot be determined url: %s.",
                          self.url,
-                         extra=extra)
+                         extra=extra,
+                         correlationId=self.request_id
+                         )
             raise requests.exceptions.HTTPError
         ranges = build_range(int(size_in_bytes), 4)
 
@@ -363,7 +355,9 @@ class RemoteCurl():
             self.tmp_dir_parts)
         logger.info('Remote execute on %s:  %s',
                     self.host,
-                    str(cmd.rstrip()))
+                    str(cmd.rstrip()),
+                    correlationId=self.request_id
+                    )
         try:
             _stdin, stdout, stderr = remote_client.exec_command(cmd)
             out = stdout.readlines()
@@ -375,7 +369,8 @@ class RemoteCurl():
                 ssh_error = str(err)
                 logger.error('stdout: ' + str(out) + ', bash ERROR:' + ssh_error,
                              exc_info=True,
-                             extra=self.extra
+                             extra=self.extra,
+                             correlationId=self.request_id
                              )
                 raise IOError
 
@@ -386,12 +381,14 @@ class RemoteCurl():
             logger.info('result for assemble %s: %s ',
                         str(self.dest_path),
                         str(out[0]).rstrip(),
+                        correlationId=self.request_id,
                         extra=self.extra)
             remote_client.close()
         except IOError as io_e:
             logger.error("%s failed to fetch url:%s", str(io_e),
                          self.dest_path,
                          extra=self.extra,
+                         correlationId=self.request_id,
                          exc_info=True)
             raise
         return self.dest_path
@@ -407,6 +404,6 @@ class RemoteCurl():
 
 # url = 'http://swarmget.do.viaa.be/tests3vents/0k2699098k-left.mp4'
 # test = RemoteCurl(url=url,
-#                   dest_path='/mnt/temptina/test.test.1234 5.t658',
+#                   dest_path='/mnt/temptina/xx5.t658',
 #                   request_id='test',
-#                   parts=False)()
+#                   parts=True)()

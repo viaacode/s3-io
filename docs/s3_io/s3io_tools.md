@@ -81,7 +81,7 @@ def read(size=None):
 
 ## RequestIterator
 
-[[find in source code]](../../s3_io/s3io_tools.py#L466)
+[[find in source code]](../../s3_io/s3io_tools.py#L465)
 
 ```python
 class RequestIterator():
@@ -95,17 +95,17 @@ Description:
 
 ### RequestIterator().\_\_iter\_\_
 
-[[find in source code]](../../s3_io/s3io_tools.py#L493)
+[[find in source code]](../../s3_io/s3io_tools.py#L489)
 
 ```python
 def __iter__():
 ```
 
-Iters with chunck size
+Iters with chunck size.
 
 ### RequestIterator().as_progress
 
-[[find in source code]](../../s3_io/s3io_tools.py#L506)
+[[find in source code]](../../s3_io/s3io_tools.py#L502)
 
 ```python
 def as_progress():
@@ -123,7 +123,7 @@ Description:
 
 ### RequestIterator().as_stream
 
-[[find in source code]](../../s3_io/s3io_tools.py#L497)
+[[find in source code]](../../s3_io/s3io_tools.py#L493)
 
 ```python
 def as_stream():
@@ -182,7 +182,7 @@ Description: streams file to ftp or local disk
 
 ### SwarmIo().to_file
 
-[[find in source code]](../../s3_io/s3io_tools.py#L143)
+[[find in source code]](../../s3_io/s3io_tools.py#L144)
 
 ```python
 def to_file():
@@ -194,7 +194,7 @@ Description:
 
 ### SwarmIo().to_ftp
 
-[[find in source code]](../../s3_io/s3io_tools.py#L106)
+[[find in source code]](../../s3_io/s3io_tools.py#L108)
 
 ```python
 def to_ftp(progress=False):
@@ -213,7 +213,7 @@ Description:
 
 ## SwarmS3Client
 
-[[find in source code]](../../s3_io/s3io_tools.py#L165)
+[[find in source code]](../../s3_io/s3io_tools.py#L166)
 
 ```python
 class SwarmS3Client():
@@ -272,7 +272,7 @@ Kwargs:
 
 ### SwarmS3Client().ffprobe_obj
 
-[[find in source code]](../../s3_io/s3io_tools.py#L306)
+[[find in source code]](../../s3_io/s3io_tools.py#L308)
 
 ```python
 def ffprobe_obj():
@@ -280,27 +280,27 @@ def ffprobe_obj():
 
 ### SwarmS3Client().get_metadata
 
-[[find in source code]](../../s3_io/s3io_tools.py#L297)
+[[find in source code]](../../s3_io/s3io_tools.py#L299)
 
 ```python
 def get_metadata():
 ```
 
-Fetch metadata look for content in Metadata
+Fetch metadata look for content in Metadata.
 
 ### SwarmS3Client().signed_url
 
-[[find in source code]](../../s3_io/s3io_tools.py#L290)
+[[find in source code]](../../s3_io/s3io_tools.py#L292)
 
 ```python
 def signed_url():
 ```
 
-the signed url to download
+the signed url to download.
 
 ### SwarmS3Client().to_file
 
-[[find in source code]](../../s3_io/s3io_tools.py#L240)
+[[find in source code]](../../s3_io/s3io_tools.py#L241)
 
 ```python
 def to_file():
@@ -312,13 +312,13 @@ Description:
 
 ### SwarmS3Client().to_ftp
 
-[[find in source code]](../../s3_io/s3io_tools.py#L254)
+[[find in source code]](../../s3_io/s3io_tools.py#L255)
 
 ```python
 def to_ftp(progress=False):
 ```
 
-Description:
+Description.:
 
 - Create a presigned url to stream to FTP
 
@@ -332,17 +332,17 @@ Description:
 
 ### SwarmS3Client().update_metadata
 
-[[find in source code]](../../s3_io/s3io_tools.py#L354)
+[[find in source code]](../../s3_io/s3io_tools.py#L356)
 
 ```python
 def update_metadata():
 ```
 
-Fails if key exists
+Fails if key exists.
 
 ### SwarmS3Client().update_metadata_put
 
-[[find in source code]](../../s3_io/s3io_tools.py#L317)
+[[find in source code]](../../s3_io/s3io_tools.py#L320)
 
 ```python
 def update_metadata_put():
@@ -350,7 +350,7 @@ def update_metadata_put():
 
 ### SwarmS3Client().wipe_metadata_put
 
-[[find in source code]](../../s3_io/s3io_tools.py#L336)
+[[find in source code]](../../s3_io/s3io_tools.py#L339)
 
 ```python
 def wipe_metadata_put():
@@ -358,7 +358,7 @@ def wipe_metadata_put():
 
 ## download_tofile
 
-[[find in source code]](../../s3_io/s3io_tools.py#L586)
+[[find in source code]](../../s3_io/s3io_tools.py#L582)
 
 ```python
 class download_tofile(object):
@@ -367,7 +367,7 @@ class download_tofile(object):
 
 ## check_key
 
-[[find in source code]](../../s3_io/s3io_tools.py#L380)
+[[find in source code]](../../s3_io/s3io_tools.py#L381)
 
 ```python
 def check_key(dict, key):
@@ -375,7 +375,7 @@ def check_key(dict, key):
 
 ## stream_to_file
 
-[[find in source code]](../../s3_io/s3io_tools.py#L561)
+[[find in source code]](../../s3_io/s3io_tools.py#L557)
 
 ```python
 def stream_to_file(url, dst):
@@ -397,7 +397,7 @@ File path, place to put the file
 
 ## upload_file
 
-[[find in source code]](../../s3_io/s3io_tools.py#L527)
+[[find in source code]](../../s3_io/s3io_tools.py#L523)
 
 ```python
 def upload_file(endpoint, secret, key, file_name, bucket, object_name=None):

@@ -12,7 +12,6 @@ MODULE_NAME=s3_io
         - [RemoteCurl](remote_curl.md#remotecurl)
         - [Remote Ffprobe](remote_ffprobe.md#remote-ffprobe)
         - [Remote Get Local](remote_get_local.md#remote-get-local)
-        - [Remte Assemble](remte_assemble.md#remte-assemble)
         - [S3io Api](s3io_api.md#s3io-api)
         - [S3io Tasks](s3io_tasks.md#s3io-tasks)
         - [S3io Tools](s3io_tools.md#s3io-tools)

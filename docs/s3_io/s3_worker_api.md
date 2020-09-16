@@ -1,9 +1,0 @@
-# S3 Worker Api
-
-> Auto-generated documentation for [s3_io.s3_worker_api](../../s3_io/s3_worker_api.py) module.
-
-Created on Tue Jan  7 10:50:23 2020
-
-- [S3io](../README.md#s3io) / [Modules](../MODULES.md#s3io-modules) / [S3 Io](index.md#s3-io) / S3 Worker Api
-
-@author: tina

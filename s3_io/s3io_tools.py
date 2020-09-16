@@ -14,7 +14,6 @@ import io
 from tqdm import tqdm
 from functools import partial
 from requests.adapters import HTTPAdapter
-from botocore.exceptions import ClientError
 import subprocess
 import shlex
 import shutil
@@ -22,6 +21,7 @@ import uuid
 import json
 from urllib3.util.retry import Retry
 from urllib.parse import unquote
+from botocore.exceptions import ClientError
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
 
@@ -61,39 +61,41 @@ class SwarmIo():
                     string
 
     """
+
     def __init__(self, bucket, key,
                  request_id=None,
                  progress=False,
                  to_ftp=None,
                  to_file=None,
                  **metadata):
-        if  to_ftp is None:
-            to_ftp={'user': None,
-                    'password': None,
-                    'ftp_path': None,
-                    'ftp_host': None}
-        if  to_file is None:
-            to_file={'path': None}
+        """Set random request id if None"""
+        if to_ftp is None:
+            to_ftp = {'user': None,
+                      'password': None,
+                      'ftp_path': None,
+                      'ftp_host': None}
+        if to_file is None:
+            to_file = {'path': None}
         if request_id is None:
-            self.request_id=str(uuid.uuid4())
+            self.request_id = str(uuid.uuid4())
         else:
-            self.request_id=request_id
+            self.request_id = request_id
 
         self.key = key
         self.bucket = bucket
         key = unquote(self.key)
-        self.log_fields={'x-viaa-request-id':self.request_id}
+        self.log_fields = {'x-viaa-request-id': self.request_id}
         logger.info("requesting object key info for: %s", self.key,
                     correlationId=self.request_id,
-                    fields=self.log_fields)
+                    extra=self.log_fields)
         swarm_url = 'http://' + swarmurl
-        self.headers={'host':swarm_domain}
+        self.headers = {'host': swarm_domain}
         self.s = requests.Session()
         retries = Retry(total=5,
                         backoff_factor=2,
                         status_forcelist=[502, 503, 504])
-        self.url=swarm_url + '/' + self.bucket + '/' + self.key
-        self.url.replace('//','/',1)
+        self.url = swarm_url + '/' + self.bucket + '/' + self.key
+        self.url.replace('//', '/', 1)
         self.s.mount('http://', HTTPAdapter(max_retries=retries))
         self.to_filesystem = to_file['path']
         self.to_ftp_user = to_ftp['user']
@@ -104,7 +106,6 @@ class SwarmIo():
 
 
     def to_ftp(self, progress=False):
-
         """Description:
 
             - Create a url to stream to FTP
@@ -135,8 +136,8 @@ class SwarmIo():
             req = RequestIterator(self.url).as_stream()
         ftp.storbinary('STOR %s' % (destpath,), req)
         logger.info('FTP upload Finished for: %s',
-                     destpath,
-                     fields=self.log_fields)
+                    destpath,
+                    fields=self.log_fields)
     #    client.end_transaction('s3io_to_ftp_task', 200)
         return destpath
 
@@ -156,12 +157,12 @@ class SwarmIo():
             return str(o)
              #download_tofile(self.url,self.to_filesystem)()
         except Exception as gen_exc:
-            logger.error(fields={'error':str(gen_exc),
-                                 'x-meemoo-request-id':self.request_id})
+            logger.error(fields={'error': str(gen_exc),
+                                 'x-meemoo-request-id': self.request_id})
 
 
 
-#@elasticapm.capture_span()
+# @elasticapm.capture_span()
 class SwarmS3Client():
     """Description:
 
@@ -209,13 +210,13 @@ class SwarmS3Client():
                  to_ftp=None,
                  to_file=None,
                  **metadata):
-        if  to_ftp is None:
-            to_ftp={'user': None,
-                    'password': None,
-                    'ftp_path': None,
-                    'ftp_host': None}
-        if  to_file is None:
-            to_file={'path': None}
+        if to_ftp is None:
+            to_ftp = {'user': None,
+                      'password': None,
+                      'ftp_path': None,
+                      'ftp_host': None}
+        if to_file is None:
+            to_file = {'path': None}
         self.metadata = metadata
         self.progress = progress
         self.endpoint = endpoint
@@ -230,12 +231,12 @@ class SwarmS3Client():
         self.ftp_host = to_ftp['ftp_host']
         self.session = boto3.session.Session()
         logger.info('opening session s3 client : %s , %s ,%s', self.endpoint,
-                    self.obj,self.key)
-        self.client= self.session.client(
-                service_name='s3',
-                aws_access_key_id = self.key,
-                aws_secret_access_key = self.secret,
-                endpoint_url='http://' + self.endpoint)
+                    self.obj, self.key)
+        self.client = self.session.client(
+            service_name='s3',
+            aws_access_key_id=self.key,
+            aws_secret_access_key=self.secret,
+            endpoint_url='http://' + self.endpoint)
 
     def to_file(self):
         """Description:
@@ -252,7 +253,7 @@ class SwarmS3Client():
 
 
     def to_ftp(self, progress=False):
-        """Description:
+        """Description.:
 
             - Create a presigned url to stream to FTP
 
@@ -267,7 +268,8 @@ class SwarmS3Client():
         self.progress = progress
         url = self.signed_url()
         ftp_connector = ftplib.FTP(self.ftp_host,
-                                  self.to_ftp_user,self.to_ftp_password)
+                                   self.to_ftp_user,
+                                   self.to_ftp_password)
         ftp_connector.encoding = 'utf-8'  # force encoding utf-8
         destpath = self.to_ftp_path
         logger.info('Logging in with %s',
@@ -288,15 +290,15 @@ class SwarmS3Client():
 
 
     def signed_url(self):
-        """the signed url to download"""
+        """the signed url to download."""
         url = self.client.generate_presigned_url(
-                'get_object', {'Bucket': self.bucket,
-                               'Key': self.obj})
+            'get_object', {'Bucket': self.bucket,
+                           'Key': self.obj})
         return url
 
     def get_metadata(self):
-        """Fetch metadata look for content in Metadata"""
-        k = self.client.head_object(Bucket = self.bucket, Key = self.obj)
+        """Fetch metadata look for content in Metadata."""
+        k = self.client.head_object(Bucket=self.bucket, Key=self.obj)
         if 'Metadata' in k:
             k = k["Metadata"]
 
@@ -310,7 +312,8 @@ class SwarmS3Client():
         logger.info('running ' + str(args))
         ffprobeOutput = subprocess.check_output(args).decode('utf-8')
         ffprobeOutput = json.loads(ffprobeOutput)
-        formatted=json.dumps(ffprobeOutput, sort_keys=False)
+        formatted = json.dumps(ffprobeOutput,
+                               sort_keys=False)
         return(str(formatted))
 
 
@@ -339,7 +342,6 @@ class SwarmS3Client():
             response = self.client.get_object(Bucket=self.bucket, Key=self.obj)
             existing_body = response.get("Body").read()
 
-
             self.client.put_object(Bucket=self.bucket,
                                    Key=self.obj,
                                    Body=existing_body,
@@ -352,33 +354,31 @@ class SwarmS3Client():
             logger.error("Unable to update metadata: {0}".format(e))
 
     def update_metadata(self):
-        """Fails if key exists"""
+        """Fails if key exists."""
         session = boto3.session.Session()
         s3_client = session.client(
-                service_name='s3',
-                aws_access_key_id = self.key,
-                aws_secret_access_key = self.secret,
-                endpoint_url=self.endpoint)
-        k = s3_client.head_object(Bucket = self.bucket, Key = self.obj)
+            service_name='s3',
+            aws_access_key_id=self.key,
+            aws_secret_access_key=self.secret,
+            endpoint_url=self.endpoint)
+        k = s3_client.head_object(Bucket=self.bucket, Key=self.obj)
         m = k["Metadata"]
 
         for i in self.metadata:
             if check_key(m, i):
-                logger.error('key %s exists',i )
+                logger.error('key %s exists', i)
 
         try:
-            s3_client.copy_object(Bucket = self.bucket,
-                               Key = self.obj,
-                               CopySource = self.bucket + '/' + self.obj,
-                               Metadata = self.metadata,
-                               MetadataDirective='REPLACE')
+            s3_client.copy_object(Bucket=self.bucket,
+                                  Key=self.obj,
+                                  CopySource=self.bucket + '/' + self.obj,
+                                  Metadata=self.metadata,
+                                  MetadataDirective='REPLACE')
         except ClientError as metadata_update_error:
             logger.error(metadata_update_error)
 
-       # logger.info(m)
 
 def check_key(dict, key):
-
     if key in dict.keys():
         logger.info("Key isPresent ! value: %s", dict[key])
         return True
@@ -387,7 +387,7 @@ def check_key(dict, key):
         return False
 
 
-#@elasticapm.capture_span()
+# @elasticapm.capture_span()
 class IteratorToStream(io.RawIOBase):
     """Description:
 
@@ -407,7 +407,7 @@ class IteratorToStream(io.RawIOBase):
             self._on_update()
         return res
 
-#@elasticapm.capture_span()
+# @elasticapm.capture_span()
 class DownloadFromSwarm():
     """Description:
 
@@ -432,11 +432,11 @@ class DownloadFromSwarm():
         self.file = file
 
     def __call__(self):
-        header = {"host":swarm_domain}
+        header = {"host": swarm_domain}
         file_size = int(
-                requests.head(self.url,
-                              headers=header,
-                              allow_redirects=True).headers["Content-Length"])
+            requests.head(self.url,
+                          headers=header,
+                          allow_redirects=True).headers["Content-Length"])
         if os.path.exists(self.file):
             first_byte = os.path.getsize(self.file)
         else:
@@ -444,7 +444,7 @@ class DownloadFromSwarm():
         if first_byte >= file_size:
             return file_size
         header = {"Range": "bytes=%s-%s" % (first_byte, file_size),
-                  "host":swarm_domain}
+                  "host": swarm_domain}
         pbar = tqdm(
             total=file_size, initial=first_byte,
             unit='B', unit_scale=True, desc=self.url.split('/')[-1])
@@ -461,29 +461,25 @@ class DownloadFromSwarm():
         return file_size
 
 
-
-#@elasticapm.capture_span()
+# @elasticapm.capture_span()
 class RequestIterator:
     """Description:
 
         - Iterates over `chunk_size` chunks of the contents of a file,
         - provides a tqdm progress indicator.
     """
+
     def __init__(self, url, chunk_size=20480, **kwargs):
-        header = {"host":swarm_domain
-        }
+        header = {"host": swarm_domain}
         req = urllib.request.Request(url, headers=header)
         self.file_size = int(urllib.request.urlopen(req).info(
                 ).get('Content-Length', -1))
         self.first_byte = 0
         self.url = url
-        header = {"host":swarm_domain,
-                  "Range": "bytes=%s-%s" % (self.first_byte, self.file_size)
-        }
-
+        header = {"host": swarm_domain,
+                  "Range": "bytes=%s-%s" % (self.first_byte, self.file_size)}
         logger.debug('##### Copying %s #####',
-                    str(header))
-
+                     str(header))
         self.req = requests.get(url,
                                 headers=header,
                                 stream=True,
@@ -491,7 +487,7 @@ class RequestIterator:
         self.chunk_size = chunk_size
 
     def __iter__(self):
-        """Iters with chunck size"""
+        """Iters with chunck size."""
         return self.req.iter_content(self.chunk_size)
 
     def as_stream(self):
@@ -515,16 +511,16 @@ class RequestIterator:
             - IteratorToStream
         """
         self.pbar = tqdm(total=self.file_size,
-                     initial=self.first_byte,
-                     unit='B',
-                     unit_scale=True,
-                     desc=self.url[-15:])
+                         initial=self.first_byte,
+                         unit='B',
+                         unit_scale=True,
+                         desc=self.url[-15:])
         return IteratorToStream(iter(self),
                                 on_update=partial(self.pbar.update,
-                                self.chunk_size))
+                                                  self.chunk_size))
 
-#@elasticapm.capture_span()
-def upload_file(endpoint, secret , key, file_name, bucket, object_name=None):
+# @elasticapm.capture_span()
+def upload_file(endpoint, secret, key, file_name, bucket, object_name=None):
     """Description:
 
         - Upload a file to an S3 bucket
@@ -541,23 +537,23 @@ def upload_file(endpoint, secret , key, file_name, bucket, object_name=None):
 
     session = boto3.session.Session()
     s3_client = session.client(
-            service_name='s3',
-            aws_access_key_id = key,
-            aws_secret_access_key = secret,
-            endpoint_url=endpoint)
+        service_name='s3',
+        aws_access_key_id=key,
+        aws_secret_access_key=secret,
+        endpoint_url=endpoint)
     # Upload the file
     try:
         response = s3_client.upload_file(file_name, bucket, object_name)
         logger.debug(str(response))
         logger.debug('File: %s, uploaded to %s/%s/%s',
-                    file_name, endpoint,bucket,object_name)
+                     file_name, endpoint, bucket, object_name)
     except ClientError as e:
-        logger.error('ERROR: %s',str(e),exc_info=True)
+        logger.error('ERROR: %s', str(e), exc_info=True)
         return False
     return True
 
 
-#@elasticapm.capture_span()
+# @elasticapm.capture_span()
 def stream_to_file(url, dst):
     """Description:
 
@@ -582,14 +578,13 @@ def stream_to_file(url, dst):
     return d
 
 
-#@elasticapm.capture_span()
+# @elasticapm.capture_span()
 class download_tofile(object):
     def __init__(self, url, file):
         self.url = url
         self.file = file
 
     def __call__(self):
-
         r = requests.get(self.url, stream=True)
         if r.status_code == 200:
             logger.debug('starting downloading %s', self.file)
@@ -599,9 +594,5 @@ class download_tofile(object):
         return self.file
 
 
-
-
-
 if __name__ == "__main__":
     boto3.set_stream_logger(name='boto3', level=10, format_string=None)
-

@@ -22,8 +22,7 @@ import configparser
 from json import JSONDecodeError
 import pika
 from retry import retry
-from viaa.observability import logging #, correlation
-# from viaa.observability.correlation import CorrelationID
+from viaa.observability import logging
 from viaa.configuration import ConfigParser
 from s3_io.create_url_to_filesystem_task import process
 config = ConfigParser()
@@ -62,9 +61,6 @@ def __main__():
     incoming_queue = 's3_to_remotefs'
     channel.basic_qos(prefetch_count=1)
     channel.queue_declare(queue=incoming_queue, durable=True)
-
-
-
     def callback(ch, method, properties, body):
         """
         Description:

@@ -23,29 +23,15 @@ from s3_io.s3io_api import __main__ as Api
 from s3_io.s3io_tasks import app
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
-from python_logging_rabbitmq import RabbitMQHandlerOneWay
 from celery.signals import setup_logging, task_postrun, task_prerun
 from celery.result import AsyncResult
 
 config = ConfigParser()
-# rabbit = RabbitMQHandlerOneWay(
-#      host=config.config['logging']['RabPub']['host'],
-#      username=config.config['logging']['RabPub']['user'],
-#      password=config.config['logging']['RabPub']['passw'],
-#      fields_under_root=True,
-#      port=5672)
-logger = logging.get_logger('s3io', config)
-
-
-# def add_rabbithandler():
-#     """ADD a log handle to get task results in log"""
-#     _logger = logging.get_logger('s3io', config)
-#     if 'RabbitMQHandlerOneWay' not in logger.handlers:
-#         _logger.addHandler(rabbit)
+logger = logging.get_logger('s3io.worker', config)
 
 
 @task_postrun.connect
-def log_task_complete(sender, task_id, task, args,  **kwargs):
+def log_task_complete(sender, task_id, task, args, **kwargs):
     """Runs on task complete """
     # add_rabbithandler()
     result = AsyncResult(task_id).result
@@ -57,25 +43,25 @@ def log_task_complete(sender, task_id, task, args,  **kwargs):
 def log_task_Started(sender, task_id, task, args, **kwargs):
     """RUNS ON TASK START"""
     try:
-       # add_rabbithandler()
-        extra = {
-            'celery_task_id': task_id,
-            'celery_task_name': str(task),
-            'x-viaa-request-id': task_id}
-        logger.info("prerun task: %s task_id: %s ",
-                    str(task),
-                    str(task_id),
-                    extra=extra)
+        # add_rabbithandler()
+        extra = {'celery_task_id': task_id,
+                 'celery_task_name': str(task),
+                 'x-viaa-request-id': task_id}
+        logger.debug("prerun task: %s task_id: %s ",
+                     str(task),
+                     str(task_id),
+                     extra=extra)
     except Exception as e:
-        logger.error("error adding handler : %s/",
+        logger.error("error : %s/",
                      str(e),
-                     exc_info=True,extra=extra)
+                     exc_info=True,
+                     extra=extra)
 
 
 # to mess celery log you need this below
 @setup_logging.connect
 def on_celery_setup_logging(**kwargs):
-    """tO MESS WITH THE LOGGER"""
+    """tO MESS WITH THE LOGGER."""
     pass
     # return True
 

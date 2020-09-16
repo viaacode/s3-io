@@ -15,16 +15,13 @@ Created on Tue Mar  3 14:12:09 2020
 """
 
 import uuid
-import logging
-#from viaa.observability import logging
+from viaa.observability import logging
 from viaa.configuration import ConfigParser
 from s3_io.s3io_tasks import swarm_to_remote
 
 config = ConfigParser()
-logger = logging.getLogger('s3io.task_creator')
-extra= {'app_name':'s3io',
-        'correlationId':'HELLO fallback'}
-logger = logging.LoggerAdapter(logger, extra)
+logger = logging.get_logger('s3io.task_creator')
+extra = {'app_name': 's3io'}
 
 rnd = str(uuid.uuid4().hex)
 debug_msg = {"service_type": "celery",
@@ -42,8 +39,8 @@ debug_msg = {"service_type": "celery",
              "destination": {
                  "path": "/home/tina/" + rnd + ".MXF",
                  "host": "dg-qas-tra-01.dg.viaa.be",
-                 "user": "tina",
-                 "password":'gentootin@02106',}}
+                 "user": "454",
+                 "password":'12115@02106'}}
 
 
 def validate_input(msg):
@@ -55,17 +52,14 @@ def validate_input(msg):
 
     request_id = msg["x-request-id"]
     key = msg['source']['object']['key']
-    f={}
-    extra={'app_name':'s3io',
-           'correlationId':request_id}
-    val_logger = logging.getLogger('s3io.task_creator')
-    val_logger = logging.LoggerAdapter(val_logger, extra)
+
+
     if 'path' in msg['destination']:
-        val_logger.info('valid msg for object_key %s and request _id: %s',
+        logger.info('valid msg for object_key %s and request _id: %s',
                     str(key),
                     request_id,
-                    extra=extra
-                   )
+                    correlationId=request_id,
+                    extra=extra)
         return True
     return False
 
@@ -94,17 +88,11 @@ def process(msg):
         job = swarm_to_remote.s(body=msg)
         celery_task = job.apply_async(retry=True)
         job_id = celery_task.id
-        extra={'app_name':'s3io',
-               'correlationId':request_id}
-        val_logger = logging.getLogger('s3io.task_creator')
-        val_logger = logging.LoggerAdapter(val_logger, extra)
-
-
-        val_logger.info('task Filesystem task_id: %s for object_key %s to file %s',
+        logger.info('task Filesystem task_id: %s for object_key %s to file %s',
                     job_id,
                     key,
-                    dest_path,)
-                    # cotrrelationId=request_id)
+                    dest_path,
+                    cotrrelationId=request_id)
         return celery_task
     # else:
     logger.error('Not a valid message')

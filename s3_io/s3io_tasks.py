@@ -5,8 +5,7 @@ Created on Wed Jan  8 16:25:28 2020
 
 @author: tina
 """
-#from viaa.observability import logging
-import logging
+from viaa.observability import logging
 from viaa.configuration import ConfigParser
 from celery import Celery
 from kombu import Exchange, Queue
@@ -17,7 +16,7 @@ from s3_io.remote_curl import RemoteCurl
 app = Celery('s3io',)
 app.config_from_object(celeryconfig)
 config = ConfigParser()
-logger = logging.getLogger('s3io')
+logger = logging.get_logger('s3io')
 app.config_from_object(celeryconfig)
 app.conf.task_queues = (Queue('s3io',
                               Exchange('py-worker-s3io'),
@@ -29,6 +28,7 @@ app.conf.task_default_routing_key = 's3io'
 s3access_key = config.app_cfg['S3_TO_FTP']['s3access_key']
 s3secret_key = config.app_cfg['S3_TO_FTP']['s3secret_key']
 swarmurl = config.app_cfg['castor']['swarmurl']
+
 
 @app.task(max_retries=5, bind=True)
 def swarm_to_ftp(self, **body):
@@ -81,7 +81,9 @@ def swarm_to_remote(self, **body):
     logger.info('process %s for object_key %s',
                 dest_path,
                 body['source']['object']['key'],
-                extra=log_fields)
+                extra=log_fields,
+                correlationId=id_
+                )
     try:
         url = 'http://' + swarmurl + '/' + bucket + '/' + key
 
@@ -98,6 +100,7 @@ def swarm_to_remote(self, **body):
         logger.error('#### ERROR %s :Task swarm_to_remote failed for id %s ',
                      str(all_e),
                      str(self.request.id),
+                     correlationId=id_,
                      exc_info=True)
         raise self.retry(coutdown=1, exc=all_e, max_retries=5)
 
