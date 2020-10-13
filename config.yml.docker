@@ -1,11 +1,7 @@
 viaa:
   logging:
     level: INFO
-    RabPub:
-      user: !ENV ${RAB_PUB_USER}
-      passw: !ENV ${RAB_PUB_PASSWORD}
-      host: !ENV ${RAB_PUB_HOST}
-      vhost: /
+
 app:
     RemoteCurl:
       private_key_path: !ENV ${REMOTECURL_PRIV_KEY_PATH}
