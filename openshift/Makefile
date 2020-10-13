@@ -1,14 +1,14 @@
 VERSION = ${shell (git describe --tags || echo latest)}
-REPO = https://github.com/viaacode/s3io.git
+REPO = https://github.com/viaacode/s3-io.git
 .ONESHELL:
 SHELL = /bin/bash
 
 .PHONY: all
 
-NAMESPACE = viaa-tools
+NAMESPACE = s3-components
 OC_PROJECT = ${NAMESPACE}
 
-APP_NAME = s3io
+APP_NAME = s3-io
 IMAGE_NAME = ${NAMESPACE}/${APP_NAME}
 REGISTRY = docker-registry-default.apps.do-prd-okp-m0.do.viaa.be
 login:

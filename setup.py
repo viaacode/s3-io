@@ -8,10 +8,10 @@ Created on Fri Jan 8 09:07:08 2018
 
 from setuptools import setup
 
-setup(name='s3_io',
+setup(name='s3-io',
       version='1.1.4',
       description='VIAA S3 Events',
-      long_description='Publiseh s3 event to rabbitmq.',
+      long_description='Publish s3 event to rabbitmq.',
       classifiers=[
           'Development Status :: 0.1-rc1',
           'Intended Audience :: Developers',
