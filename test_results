@@ -1,1 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite errors="0" failures="0" hostname="violetina" name="pytest" skipped="0" tests="1" time="1.488" timestamp="2020-04-23T09:05:27.855919"><testcase classname="tests.test_api" file="tests/test_api.py" line="14" name="test_health" time="0.009"></testcase></testsuite></testsuites>

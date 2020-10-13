@@ -11,3 +11,5 @@ s3io/known_hosts
 build/*
 dist/*
 .env
+s3io_lint*
+test_results*

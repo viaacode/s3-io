@@ -1,4 +1,0 @@
-./tests/test_api.py:2:1: F401 'connexion' imported but unused
-./tests/test_api.py:5:1: E265 block comment should start with '# '
-./tests/test_api.py:9:1: E303 too many blank lines (3)
-./tests/test_api.py:17:39: W292 no newline at end of file
