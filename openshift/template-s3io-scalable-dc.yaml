@@ -1,99 +1,110 @@
-apiVersion: apps.openshift.io/v1
-kind: DeploymentConfig
+apiVersion: template.openshift.io/v1
+kind: Template
 metadata:
-  annotations:
-    openshift.io/generated-by: OpenShiftWebConsole
   creationTimestamp: null
-  generation: 8
-  labels:
-    ENV: ${ENV}
-    app: s3-io
-  name: s3-io-scalable-${ENV}
-spec:
-  replicas: 4
-  selector:
-    ENV: ${ENV}
-    app: s3-io
-    deploymentconfig: s3-io-scalable-${ENV}
-  strategy:
-    activeDeadlineSeconds: 21600
-    resources: {}
-    rollingParams:
-      intervalSeconds: 1
-      maxSurge: 25%
-      maxUnavailable: 25%
-      timeoutSeconds: 600
-      updatePeriodSeconds: 1
-    type: Rolling
-  template:
-    metadata:
-      annotations:
-        openshift.io/generated-by: OpenShiftWebConsole
-      creationTimestamp: null
-      labels:
-        ENV: ${ENV}
-        app: s3-io
-        deploymentconfig: s3-io-scalable-${ENV}
-    spec:
-      containers:
-      - env:
-        - name: CASTOR_SWARMDOMAIN
-          value: s3-qas.a.domain.org
-        - name: CASTOR_SWARMURL
-          value: swarmget.do.a.domain.org
-        - name: CELERY_BROKER_URL
-          value: amqp://user:pass3@broker:5672/py_workers
-        - name: CELERY_RES_BACKEND
-          value: elasticsearch://es.a.domain.org:9200/s3io-dev/results
-        - name: CONSUMER_URI
-          value: amqp://user:pass3@broker::5672/
-        - name: DOWNLCHUNCKS_DOMAIN
-          value: s3-qas.a.domain.org
-        - name: REMOTECURL_DOMAIN_HEADER
-          value: s3-qas.a.domain.org
-        - name: REMOTECURL_HOST
-          value: do-qas-tra-01.do.a.domain.org
-        - name: REMOTECURL_PASSW
-          value: xxxxxx
-        - name: REMOTECURL_USER
-          value: root
-        - name: S3_TO_FTP_ACCESS_KEY
-          value: xxxxxxxxx
-        - name: S3_TO_FTP_PASSOWRD
-          value: ftphavenQAS15
-        - name: S3_TO_FTP_SECRET_KEY
-          value: yyyyyyy
-        - name: S3_TO_FTP_SERVER
-          value: ftp-qas.a.domain.org
-        - name: S3_TO_FTP_USER
-          value: zzzzz
-        image: docker-registry.default.svc:5000/s3-components/s3-io-scalable@sha256:0699b600d5881292bc9806c943d9852db110b06c0bbc2a2a3fafb3fc2fc7d44f
-        imagePullPolicy: Always
-        command:
-            - s3io-scalable
-     
-        name: s3-io-scalable-${ENV}
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      terminationGracePeriodSeconds: 30
-  test: false
-  triggers:
-  - type: ConfigChange
-  - imageChangeParams:
-      automatic: true
-      containerNames:
-      - s3-io-scalable-{ENV}
-      from:
-        kind: ImageStreamTag
-        name: s3-io:${ENV}
-        namespace: s3-components
-      lastTriggeredImage: docker-registry.default.svc:5000/s3-components/s3-io-scalable@sha256:0699b600d5881292bc9806c943d9852db110b06c0bbc2a2a3fafb3fc2fc7d44f
-    type: ImageChange
+  name: s3-io-worker
+objects:
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    generation: 8
+    labels:
+      ENV: ${ENV}
+      app: s3-io
+    name: s3-io-scalable-${ENV}
+  spec:
+    replicas: 4
+    selector:
+      ENV: ${ENV}
+      app: s3-io
+      deploymentconfig: s3-io-scalable-${ENV}
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftWebConsole
+        creationTimestamp: null
+        labels:
+          ENV: ${ENV}
+          app: s3-io
+          deploymentconfig: s3-io-scalable
+      spec:
+        containers:
+        - env:
+          - name: CASTOR_SWARMDOMAIN
+            value: s3-${ENV}.domain.org
+          - name: CASTOR_SWARMURL
+            value: swarmget.do.domain.org
+          - name: CELERY_BROKER_URL
+            value: amqp://user:xxx@mq-${ENV}:5672/py_workers
+          - name: CELERY_RES_BACKEND
+            value: elasticsearch://do.domain.org:9200/s3io-dev/results
+          - name: CONSUMER_URI
+            value: amqp://admin:xx@mq-${ENV}:5672/
+          - name: DOWNLCHUNCKS_DOMAIN
+            value: s3-${ENV}.domain.org
+          - name: REMOTECURL_DOMAIN_HEADER
+            value: s3-${ENV}.domain.org
+          - name: REMOTECURL_HOST
+            value: do.domain.org
+          - name: REMOTECURL_PASSW
+            value: xxxx
+          - name: REMOTECURL_USER
+            value: root
+          - name: S3_TO_FTP_ACCESS_KEY
+            value: xxxxxxxxx
+          - name: S3_TO_FTP_PASSOWRD
+            value: xxxx
+          - name: S3_TO_FTP_SECRET_KEY
+            value: xx
+          - name: S3_TO_FTP_SERVER
+            value: ftpx.domain.org
+          - name: S3_TO_FTP_USER
+            value: xxx
+          image: docker-registry.default.svc:5000/s3-components/s3-io@sha256:0699b600d5881292bc9806c943d9852db110b06c0bbc2a2a3fafb3fc2fc7d44f
+          imagePullPolicy: Always
+          command: s3io-scalable
+          name: s3-io-scalable-${ENV}
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - s3-io-scalable-${ENV}
+        from:
+          kind: ImageStreamTag
+          name: s3-io:${ENV}
+          namespace: s3-components
+        lastTriggeredImage: docker-registry.default.svc:5000/s3-components/s3-io@sha256:0699b600d5881292bc9806c943d9852db110b06c0bbc2a2a3fafb3fc2fc7d44f
+      type: ImageChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
 parameters:
-  - name: ENV
-    value: qas
+- name: ENV
+  value: qas
