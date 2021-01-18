@@ -308,7 +308,7 @@ class RemoteCurl():
                          correlationId=self.request_id
                          )
             raise requests.exceptions.HTTPError
-        ranges = build_range(int(size_in_bytes), 4)
+        ranges = build_range(int(size_in_bytes), 6)
 
         downloaders = [
 
