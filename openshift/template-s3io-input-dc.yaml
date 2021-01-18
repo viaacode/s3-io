@@ -1,26 +1,27 @@
-apiVersion: template.openshift.io/v1
+apiVersion: v1
 kind: Template
 metadata:
   creationTimestamp: null
-  name: s3-io-worker
+  name: s3-io-frontend
 objects:
-- apiVersion: apps.openshift.io/v1
+- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     annotations:
-      openshift.io/generated-by: OpenShiftWebConsole
     creationTimestamp: null
     generation: 8
     labels:
-      ENV: ${ENV}
       app: s3-io
-    name: s3-io-input-${ENV}
+      ENV: ${ENV}
+      component: frontend
+    name: s3-io-frontend-${ENV}
   spec:
-    replicas: 4
+    replicas: 0
     selector:
-      ENV: ${ENV}
       app: s3-io
-      deploymentconfig: s3-io-input-${ENV}
+      component: frontend
+      ENV: ${ENV}
+
     strategy:
       activeDeadlineSeconds: 21600
       resources: {}
@@ -37,26 +38,26 @@ objects:
           openshift.io/generated-by: OpenShiftWebConsole
         creationTimestamp: null
         labels:
+          component: frontend
           ENV: ${ENV}
           app: s3-io
-          deploymentconfig: s3-io-input
       spec:
         containers:
         - env:
           - name: CASTOR_SWARMDOMAIN
-            value: s3-${ENV}.domain.org
+            value: s3.domain.org
           - name: CASTOR_SWARMURL
             value: swarmget.do.domain.org
           - name: CELERY_BROKER_URL
-            value: amqp://user:xxx@mq-${ENV}:5672/py_workers
-          - name: CELERY_RES_BACKEND
+            value: amqp://user:xxx@mq5672/py_workers
+          - name: CELERY_RES_frontend
             value: elasticsearch://do.domain.org:9200/s3io-dev/results
           - name: CONSUMER_URI
-            value: amqp://admin:xx@mq-${ENV}:5672/
+            value: amqp://admin:xx@mq:5672/
           - name: DOWNLCHUNCKS_DOMAIN
-            value: s3-${ENV}.domain.org
+            value: s3.domain.org
           - name: REMOTECURL_DOMAIN_HEADER
-            value: s3-${ENV}.domain.org
+            value: s3.domain.org
           - name: REMOTECURL_HOST
             value: do.domain.org
           - name: REMOTECURL_PASSW
@@ -75,8 +76,9 @@ objects:
             value: xxx
           image: docker-registry.default.svc:5000/s3-components/s3-io@sha256:0699b600d5881292bc9806c943d9852db110b06c0bbc2a2a3fafb3fc2fc7d44f
           imagePullPolicy: Always
-          command: s3io-api
-          name: s3-io-input-${ENV}
+          command:
+            - s3io-api
+          name: s3-io-frontend-${ENV}
           resources: {}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
@@ -91,7 +93,7 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - s3-io-input-${ENV}
+        - s3-io-frontend-${ENV}
         from:
           kind: ImageStreamTag
           name: s3-io:${ENV}
@@ -106,5 +108,5 @@ objects:
     unavailableReplicas: 0
     updatedReplicas: 0
 parameters:
-- name: ENV
-  value: qas
+  - name: ENV
+    value: qas
