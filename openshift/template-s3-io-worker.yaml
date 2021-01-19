@@ -78,6 +78,18 @@ objects:
             command:
               - s3io-scalable
             name: s3-io-worker-${ENV}
+            readinessProbe:
+              exec:
+                command: [
+                  "bash",
+                  "-c",
+                  "celery inspect ping -A s3_io.s3io_tasks -d s3-io-worker@$(hostname) | egrep OK || echo ERROR & exit 1"
+                ]
+              initialDelaySeconds: 60
+              successThreshold: 1
+              periodSeconds: 180
+              failureThreshold: 5
+              timeoutSeconds: 20
             resources: {}
             terminationMessagePath: /dev/termination-log
             terminationMessagePolicy: File
