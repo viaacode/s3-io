@@ -135,7 +135,7 @@ objects:
       ENV: ${ENV}
       component: front
       app: s3-io
-    name: s3-io-${ENV}
+    name: s3-io-front-${ENV}
   spec:
     ports:
     - name: http
