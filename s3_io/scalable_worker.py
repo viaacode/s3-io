@@ -15,7 +15,6 @@ from viaa.observability import logging
 from viaa.configuration import ConfigParser
 from celery.signals import setup_logging, task_postrun, task_prerun
 from celery.result import AsyncResult
-import uuid
 
 
 config = ConfigParser()
@@ -61,13 +60,11 @@ def on_celery_setup_logging(**kwargs):
 
 
 def worker():
-    """sTARTS the celery worker THREAD"""
-    # randomize
-    rnd = uuid.uuid4()
+    """Starts the celery worker THREAD"""
     argv = [
         "worker",
         "--loglevel=INFO",
-        "-n=s3io-{}-@%h".format(rnd),
+        "-n=s3-io-worker@%h",
         "--concurrency=1",
         "-E",
     ]
