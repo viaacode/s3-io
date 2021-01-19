@@ -81,6 +81,13 @@ objects:
             resources: {}
             terminationMessagePath: /dev/termination-log
             terminationMessagePolicy: File
+            resources:
+              limits:
+                cpu: '${cpu_limit}m'
+                memory: '${memory_limit}Mi'
+              requests:
+                cpu: '${cpu_requested}m'
+                memory: '${memory_requested}Mi'
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
@@ -127,3 +134,11 @@ objects:
 parameters:
   - name: ENV
     value: qas
+  - name: 'memory_requested'
+    value: '128'
+  - name: 'memory_limit'
+    value: '328'
+  - name: 'cpu_requested'
+    value: '100'
+  - name: 'cpu_limit'
+    value: '300'
