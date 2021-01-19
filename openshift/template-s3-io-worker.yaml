@@ -42,45 +42,45 @@ objects:
           app: s3-io
       spec:
         containers:
-        - env:
-          - name: CASTOR_SWARMDOMAIN
-            value: s3.domain.org
-          - name: CASTOR_SWARMURL
-            value: swarmget.do.domain.org
-          - name: CELERY_BROKER_URL
-            value: amqp://user:xxx@mq5672/py_workers
-          - name: CELERY_RES_BACKEND
-            value: elasticsearch://do.domain.org:9200/s3io-dev/results
-          - name: CONSUMER_URI
-            value: amqp://admin:xx@mq:5672/
-          - name: DOWNLCHUNCKS_DOMAIN
-            value: s3.domain.org
-          - name: REMOTECURL_DOMAIN_HEADER
-            value: s3.domain.org
-          - name: REMOTECURL_HOST
-            value: do.domain.org
-          - name: REMOTECURL_PASSW
-            value: xxxx
-          - name: REMOTECURL_USER
-            value: root
-          - name: S3_TO_FTP_ACCESS_KEY
-            value: xxxxxxxxx
-          - name: S3_TO_FTP_PASSOWRD
-            value: xxxx
-          - name: S3_TO_FTP_SECRET_KEY
-            value: xx
-          - name: S3_TO_FTP_SERVER
-            value: ftpx.domain.org
-          - name: S3_TO_FTP_USER
-            value: xxx
-          image: docker-registry.default.svc:5000/s3-components/s3-io@sha256:0699b600d5881292bc9806c943d9852db110b06c0bbc2a2a3fafb3fc2fc7d44f
-          imagePullPolicy: Always
-          command:
-            - s3io-scalable
-          name: s3-io-worker-${ENV}
-          resources: {}
-          terminationMessagePath: /dev/termination-log
-          terminationMessagePolicy: File
+          - env:
+            - name: CASTOR_SWARMDOMAIN
+              value: s3.domain.org
+            - name: CASTOR_SWARMURL
+              value: swarmget.do.domain.org
+            - name: CELERY_BROKER_URL
+              value: amqp://user:xxx@mq5672/py_workers
+            - name: CELERY_RES_BACKEND
+              value: elasticsearch://do.domain.org:9200/s3io-dev/results
+            - name: CONSUMER_URI
+              value: amqp://admin:xx@mq:5672/
+            - name: DOWNLCHUNCKS_DOMAIN
+              value: s3.domain.org
+            - name: REMOTECURL_DOMAIN_HEADER
+              value: s3.domain.org
+            - name: REMOTECURL_HOST
+              value: do.domain.org
+            - name: REMOTECURL_PASSW
+              value: xxxx
+            - name: REMOTECURL_USER
+              value: root
+            - name: S3_TO_FTP_ACCESS_KEY
+              value: xxxxxxxxx
+            - name: S3_TO_FTP_PASSOWRD
+              value: xxxx
+            - name: S3_TO_FTP_SECRET_KEY
+              value: xx
+            - name: S3_TO_FTP_SERVER
+              value: ftpx.domain.org
+            - name: S3_TO_FTP_USER
+              value: xxx
+            image: docker-registry.default.svc:5000/s3-components/s3-io
+            imagePullPolicy: Always
+            command:
+              - s3io-scalable
+            name: s3-io-worker-${ENV}
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
@@ -97,15 +97,9 @@ objects:
           kind: ImageStreamTag
           name: s3-io:${ENV}
           namespace: s3-components
-        lastTriggeredImage: docker-registry.default.svc:5000/s3-components/s3-io@sha256:0699b600d5881292bc9806c943d9852db110b06c0bbc2a2a3fafb3fc2fc7d44f
+        lastTriggeredImage: ''
       type: ImageChange
-  status:
-    availableReplicas: 0
-    latestVersion: 0
-    observedGeneration: 0
-    replicas: 0
-    unavailableReplicas: 0
-    updatedReplicas: 0
+  status: {}
 parameters:
   - name: ENV
     value: qas
