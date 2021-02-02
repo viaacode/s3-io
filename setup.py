@@ -49,7 +49,8 @@ setup(name='s3-io',
           'elasticsearch==6.4.0',
       ],
       entry_points={
-          'console_scripts': ['s3io-worker=s3_io.s3io_worker:__main__',
+          'console_scripts': ['s3io-api=s3_io.s3io_input:__main__',
+                              's3io-scalable=s3_io.scalable_worker:__main__',
                               's3io-consumer=s3_io.event_consumer:__main__']},
       include_package_data=True,
       zip_safe=False)

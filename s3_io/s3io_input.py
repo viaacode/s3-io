@@ -1,16 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Sep 23 11:58:05 2019
-
-- Description:
-
-    - Start Celery worker from cli
-    - set concurrency here
-
-- Kind:
-
-    - entrypoint
+Created on Mon Jan 18 09:40:14 2021
 
 @author: tina
 """
@@ -27,7 +18,7 @@ from celery.signals import setup_logging, task_postrun, task_prerun
 from celery.result import AsyncResult
 
 config = ConfigParser()
-logger = logging.get_logger('s3io.worker', config)
+logger = logging.get_logger('s3io.input', config)
 
 
 @task_postrun.connect
@@ -108,30 +99,11 @@ def __event_consumer__():
         atexit.register(quit_gracefully)
         logger.info('SHUTTING DOWN')
 
-def worker():
-    """sTARTS the celery worker THREAD"""
-    argv = [
-        'worker',
-        '--loglevel=INFO',
-        '-n=s3ior@%h',
-        '--concurrency=2',
-        '-E',
-    ]
-    logger.info("********* starting the worker ********* ")
-    try:
-        app.worker_main(argv)
-    except KeyboardInterrupt:
-        atexit.register(quit_gracefully)
-        sys.exit(1)
-    sys.exit(0)
 
 
 def __main__():
     try:
-        thread = threading.Thread(target=worker)
-        api_thread = threading.Thread(target=s3_api)
-        api_thread.daemon = False
-        api_thread.start()
+        thread = threading.Thread(target=s3_api)
         thread.daemon = False
         thread.start()
         logger.info('consumer joining')
@@ -141,8 +113,7 @@ def __main__():
                      exc_info=True)
         logger.info('SHUTTING DOWN')
         # thread.join()
-        atexit.register(quit_gracefully,
-                        t=thread)
+
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-FROM python:3.8-slim AS compile-image
+FROM python:3.7-slim AS compile-image
 RUN apt-get update &&  apt-get install -y --no-install-recommends git build-essential gcc autoconf libtool automake
 RUN python -m venv /opt/venv
 
@@ -11,13 +11,14 @@ ENV GUID=$GUID
 
 COPY /s3_io s3io/s3_io
 COPY setup.py s3io/setup.py
-RUN  pip install git+https://github.com/viaacode/chassis.py.git@development &&\
+RUN pip install uwsgi &&\
+   pip install git+https://github.com/viaacode/chassis.py.git@development &&\
    cd s3io &&\
    python setup.py install && pip install connexion[swagger-ui]
 
 ###################" TEST IAMGE
 ########"
-FROM python:3.8-slim AS test-image
+FROM python:3.7-slim AS test-image
 COPY --from=compile-image /opt/venv /opt/venv
 
 # set timezone
@@ -52,19 +53,17 @@ RUN ls ./ -ltra
 ####################### RUN IMAGE
 #########
 
-FROM python:3.8-slim AS run-image
+FROM python:3.7-slim AS run-image
 ARG GUID=2001
 ENV GUID=2001
 COPY --from=compile-image /opt/venv /opt/venv
-## todo only cp what is needed
 WORKDIR /app
-RUN pwd && mkdir -p s3io && ls -ltr
-COPY --from=compile-image /app/s3io/s3_io /app/s3io/s3_io
-RUN groupadd -g $GUID -r app && useradd -m -u $GUID -b /home -r -g app app
 
+RUN groupadd -g $GUID -r app && useradd -m -u $GUID -b /home -r -g app app
+COPY ./s3_io/api/ ./api
+RUN chown app:app /opt && chmod g+wx /opt
 RUN chown -R app:0 /app && chmod -R g+rwx /app &&\
   chown -R app:0 /app && chmod -R g+rwx /app
-
 # set timezone
 ENV TZ=Europe/Brussels
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -76,6 +75,8 @@ WORKDIR /app
 COPY ./config.yml.docker ./config.yml
 # copy config for tests
 # todo add test stage
+COPY ./tests ./tests
+COPY ./config.yml.docker ./tests/config.yml
 
 USER app
 
@@ -106,5 +107,4 @@ COPY ./entrypoint.sh /app/entrypoint.sh
 
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-#, "s3io-daemon"]
-CMD s3io-api
+CMD s3io-worker

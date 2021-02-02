@@ -13,7 +13,7 @@ COPY /s3_io s3io/s3_io
 COPY setup.py s3io/setup.py
 RUN  pip install git+https://github.com/viaacode/chassis.py.git@development &&\
    cd s3io &&\
-   python setup.py install && pip install connexion[swagger-ui]
+   python setup.py install && pip install flower
 
 ###################" TEST IAMGE
 ########"
@@ -107,4 +107,4 @@ COPY ./entrypoint.sh /app/entrypoint.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 #, "s3io-daemon"]
-CMD s3io-api
+CMD ["celery", "flower", "-A", "s3_io.s3io_tasks"]
