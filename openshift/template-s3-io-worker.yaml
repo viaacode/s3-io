@@ -104,7 +104,7 @@ objects:
         restartPolicy: Always
         schedulerName: default-scheduler
         securityContext: {}
-        terminationGracePeriodSeconds: 3600
+        terminationGracePeriodSeconds: 4000
     test: false
     triggers:
     - type: ConfigChange
