@@ -392,7 +392,9 @@ class RemoteCurl():
                 raise IOError
 
             # else:
+
             self.extra['RESULT'] = 'DONE'
+
             self.extra['x-request-id'] = self.request_id
 
             logger.info('result for assemble %s: %s ',
