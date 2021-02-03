@@ -52,7 +52,7 @@ test-int:
 tag-qas:
 	oc tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:qas
 deploy-qas:
-	bash ./openshift/wait4rollout.sh qas ${APP_NAME}
+	bash ./openshift/wait4rollout.sh qas s3-io-worker-qas
 test-qas:
 
 tag-prd:
