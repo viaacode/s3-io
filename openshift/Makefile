@@ -54,6 +54,7 @@ tag-qas:
 	#oc tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:qas
 deploy-qas:
 	bash ./openshift/rollout.sh s3-io qas ${VERSION} s3-io-worker-qas s3-io-front-qas
+
 test-qas:
 
 tag-prd:
