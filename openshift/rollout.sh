@@ -12,6 +12,6 @@ trap "kill 0" EXIT
   oc rollout cancel dc/"${4}" &oc rollout cancel dc/"${5}" &
   oc tag "${1}":"${3}" "${1}":"${2}" || exit 1
   oc rollout latest dc/"${4}" &  oc rollout latest dc/"${5}" &&
-  oc rollout status dc/"${4}"|| exit 1
+  oc rollout status dc/"${4}"
 
 wait
