@@ -9,13 +9,9 @@ oc project s3-components
 echo ..... Rolling out "${2}" to version "${3}" ..... 
 trap "exit" INT TERM ERR
 trap "kill 0" EXIT
-  oc rollout cancel dc/"${4}" & 
+  oc rollout cancel dc/"${4}" &oc rollout cancel dc/"${5}" & 
   oc tag "${1}":"${3}" "${1}":"${2}" || exit 1
-  sleep 3 && oc rollout latest dc/"${4}" && sleep 3 &&
-  oc rollout status dc/"${4}" || exit 1
-  oc rollout cancel dc/"${5}" &
-  sleep 3 && oc rollout latest dc/"${5}" && sleep 3 &&
-  oc rollout status dc/"${5}" || exit 1
-
+  oc rollout latest dc/"${4}" & sleep 3 &&
+  oc rollout status dc/"${4}" & oc rollout status dc/"${5}" || exit 1
 
 wait
