@@ -21,7 +21,7 @@ from functools import update_wrapper
 import paramiko
 import requests
 from viaa.observability import logging
-
+from requests.exceptions import HTTPError
 from viaa.configuration import ConfigParser
 config = ConfigParser()
 logger = logging.get_logger('s3io.remote_curl')
@@ -105,16 +105,32 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
         err = stderr.readlines()
         logger.debug("stdout: " + str(out) + "stderr: " + str(err))
         if stdout != []:
-            result = 'SUCCESS'
+            result = ''
             speed = str(out[0]).split(',')
-            print(str(speed))
+            status_code= speed[1]
+            if int(status_code) >= 400:
+                extra = {'speed': speed[0],
+                         'status_code': speed[1],
+                         'filesize:': speed[2],
+                         'source_url': speed[3],
+                         'total_runtime': speed[4],
+                         'x-request-id': request_id,
+                         'RESULT': 'FAILED'}
+                logger.error(
+                    'ERROR remote fetch failed ',
+                                        speed[1],
+                                        extra=extra,
+                                        correlationId=request_id
+                                        )
+                raise HTTPError
+
             extra = {'speed': speed[0],
                      'status_code': speed[1],
                      'filesize:': speed[2],
                      'source_url': speed[3],
                      'total_runtime': speed[4],
                      'x-request-id': request_id,
-                     'RESULT': 'FINISED'}
+                     'RESULT': 'FINISHED'}
 
 
             logger.info('setting stats in extra.. speed: %s Bytes/s,\
@@ -125,10 +141,10 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                         correlationId=request_id
                         )
 
-            extra['RESULT'] = 'SUCCESS'
+            extra['RESULT'] = 'DONE'
             extra['x-request-id'] = request_id
 
-            logger.info('SUCCESS for fetching %s: %s ',
+            logger.info('DONE for fetching %s: %s ',
                         str(speed[3]),
                         str(result),
                         correlationId=request_id,
@@ -361,6 +377,7 @@ class RemoteCurl():
         try:
             _stdin, stdout, stderr = remote_client.exec_command(cmd)
             out = stdout.readlines()
+            print(out[0].strip())
             err = stderr.readlines()
             if out == [] or err != [] or 'ERROR' in out[0]:
                 self.extra['RESULT'] = 'FAILED'
@@ -375,7 +392,9 @@ class RemoteCurl():
                 raise IOError
 
             # else:
-            self.extra['RESULT'] = 'SUCCESS'
+
+            self.extra['RESULT'] = 'DONE'
+
             self.extra['x-request-id'] = self.request_id
 
             logger.info('result for assemble %s: %s ',

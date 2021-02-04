@@ -12,7 +12,7 @@ from kombu import Exchange, Queue
 from s3_io.s3io_tools import SwarmS3Client, SwarmIo
 import s3_io.celeryconfig as celeryconfig
 from s3_io.remote_curl import RemoteCurl
-
+from requests.exceptions import HTTPError
 app = Celery('s3io',)
 app.config_from_object(celeryconfig)
 config = ConfigParser()
@@ -96,13 +96,13 @@ def swarm_to_remote(self, **body):
                                     parts=True)()
 
         return str(dest_file_path)
-    except Exception as all_e:
+    except HTTPError  as http_e:
         logger.error('#### ERROR %s :Task swarm_to_remote failed for id %s ',
-                     str(all_e),
+                     str(http_e),
                      str(self.request.id),
                      correlationId=id_,
                      exc_info=True)
-        raise self.retry(coutdown=1, exc=all_e, max_retries=5)
+        raise self.retry(coutdown=1, exc=http_e, max_retries=5)
 
 
 @app.task(max_retries=3, bind=True)
