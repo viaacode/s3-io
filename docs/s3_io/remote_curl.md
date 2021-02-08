@@ -29,7 +29,7 @@ r=RemoteCurl(url="http://10.50.152.194:80/tests3vents/0k2699098k-left.mp4", dest
 
 ## RemoteCurl
 
-[[find in source code]](../../s3_io/remote_curl.py#L185)
+[[find in source code]](../../s3_io/remote_curl.py#L217)
 
 ```python
 class RemoteCurl():
@@ -61,7 +61,7 @@ class RemoteCurl():
 
 ### RemoteCurl().\_\_call\_\_
 
-[[find in source code]](../../s3_io/remote_curl.py#L413)
+[[find in source code]](../../s3_io/remote_curl.py#L456)
 
 ```python
 def __call__():
@@ -71,7 +71,7 @@ Run remote_get
 
 ### RemoteCurl().download_chunk
 
-[[find in source code]](../../s3_io/remote_curl.py#L268)
+[[find in source code]](../../s3_io/remote_curl.py#L301)
 
 ```python
 @timeit
@@ -101,7 +101,7 @@ Description:
 
 ### RemoteCurl().dwnl_parts
 
-[[find in source code]](../../s3_io/remote_curl.py#L302)
+[[find in source code]](../../s3_io/remote_curl.py#L339)
 
 ```python
 @timeit
@@ -116,7 +116,7 @@ Download parts
 
 ### RemoteCurl().remote_get
 
-[[find in source code]](../../s3_io/remote_curl.py#L243)
+[[find in source code]](../../s3_io/remote_curl.py#L275)
 
 ```python
 @timeit
