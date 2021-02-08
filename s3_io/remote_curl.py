@@ -185,7 +185,15 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                          extra=extra)
 
         remote_client.close()
-
+    except paramiko.SSHException as e:
+        extra['RESULT'] = 'FAILED'
+        extra['x-request-id'] = request_id
+        bash_error = str(e)
+        logger.error('ERROR SSH failed: %s, ssh ERROR: %s', dest_path,
+                     bash_error,
+                     exc_info=True,
+                     correlationId=request_id,
+                     extra=extra)
     except IOError as io_e:
         extra['RESULT'] = 'FAILED'
         extra['x-request-id'] = request_id
