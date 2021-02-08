@@ -86,13 +86,25 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                           port=22,
                           username=user,
                           password=password)
-    cmd = "curl -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\" " + "-L -J {} ".format(headers) +\
+
+
+
+    curl_cmd = "curl -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\" " + "-L -J {} ".format(headers) +\
         " -s " + url +\
-        " -o \"{}\" || echo ERROR & exit 1".format(dest_path)
-    if tmp_dir:
-        logger.debug('create tmp_dir: %s', tmp_dir)
-        cmd = """mkdir -p "{}"; """.format(tmp_dir) + cmd
-    extra = {'app_name': 's3io',
+        " -o \"{}\" ".format(dest_path)
+
+    retry_cmd = "curl -C -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\" " + "-L -J {} ".format(headers) +\
+        " -s " + url +\
+        " -o \"{}\" ".format(dest_path)
+
+    pre_cmd = """ if [ ! -d "{}" ] ;then mkdir -p "{}"; fi; """.format(tmp_dir,tmp_dir)
+    check_cmd =""" if [ -f "{}" ] ;then echo ERROR & exit 1;fi && """.format(dest_path)
+
+    cmd = check_cmd + pre_cmd + curl_cmd + "|| {}".format(retry_cmd)
+
+
+    logger.debug(cmd)
+    extra = {'app_name': 's3-io',
              'correlationId': request_id}
     logger.info("Starting Remote CURL on %s: %s",
                 host,
@@ -103,37 +115,40 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
         _stdin, stdout, stderr = remote_client.exec_command(cmd)
         out = stdout.readlines()
         err = stderr.readlines()
+        speeds= []
         logger.debug("stdout: " + str(out) + "stderr: " + str(err))
+        if 'ERROR' in stdout:
+            raise IOError
         if stdout != []:
             result = ''
-            speed = str(out[0]).split(',')
-            status_code= speed[1]
-            if int(status_code) >= 400:
+            try:
+                speed = str(out[0]).split(',')
+                speeds.append(speed[0])
+                print(speeds)
+                status_code= speed[1]
+                if int(status_code) >= 400:
+                    extra = {'speed': speed[0],
+                             'status_code': speed[1],
+                             'filesize:': speed[2],
+                             'source_url': speed[3],
+                             'total_runtime': speed[4],
+                             'x-request-id': request_id,
+                             'RESULT': 'FAILED'}
+                    logger.error(
+                        'ERROR remote fetch failed ',
+                                            speed[1],
+                                            extra=extra,
+                                            correlationId=request_id
+                                            )
+                    raise HTTPError
                 extra = {'speed': speed[0],
-                         'status_code': speed[1],
-                         'filesize:': speed[2],
-                         'source_url': speed[3],
-                         'total_runtime': speed[4],
-                         'x-request-id': request_id,
-                         'RESULT': 'FAILED'}
-                logger.error(
-                    'ERROR remote fetch failed ',
-                                        speed[1],
-                                        extra=extra,
-                                        correlationId=request_id
-                                        )
-                raise HTTPError
-
-            extra = {'speed': speed[0],
                      'status_code': speed[1],
                      'filesize:': speed[2],
                      'source_url': speed[3],
                      'total_runtime': speed[4],
                      'x-request-id': request_id,
                      'RESULT': 'FINISHED'}
-
-
-            logger.info('setting stats in extra.. speed: %s Bytes/s,\
+                logger.info('Task DONE, speed: %s Bytes/s,\
                         took: %s seconds',
                         speed[0],
                         speed[4],
@@ -141,16 +156,23 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                         correlationId=request_id
                         )
 
+            except IndexError:
+                logger.error("ERROR fetch failed: " + str(dest_path))
+                status_code = 500
+
+
+            except KeyboardInterrupt:
+                cln_cmd = """ echo XXX rm -rf "{}" """.format(tmp_dir)
+                _stdin, stdout, stderr = remote_client.exec_command(cln_cmd)
+                out = stdout.readlines()
+                print(out)
+                err = stderr.readlines()
+
+
             extra['RESULT'] = 'DONE'
             extra['x-request-id'] = request_id
 
-            logger.info('DONE for fetching %s: %s ',
-                        str(speed[3]),
-                        str(result),
-                        correlationId=request_id,
-                        extra=extra,
 
-                        )
         else:
             extra['RESULT'] = 'FAILED'
             extra['x-request-id'] = request_id
@@ -163,6 +185,11 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                          extra=extra)
 
         remote_client.close()
+        try:
+            total_speed = sum(speeds)
+            logger.info("TOTAL speed %s",total_speed)
+        except :
+            print('moo')
     except IOError as io_e:
         extra['RESULT'] = 'FAILED'
         extra['x-request-id'] = request_id
@@ -265,6 +292,7 @@ class RemoteCurl():
                      self.headers,
                      self.request_id)
 
+
     @timeit
     def download_chunk(self, idx, irange,
                        url,
@@ -283,12 +311,24 @@ class RemoteCurl():
             - Join the files (remote command paramiko)
 
         """
+
         host_header = config.app_cfg['RemoteCurl']['domain_header']
 
         curl_headers = "-H 'host: {}'".format(host_header) + \
                        " -H 'range: bytes={}' -r {}".format(irange, irange)
         self.headers = curl_headers
+
         self.dest_path_parts = dest_path + '_part_' + str(idx)
+        logger.debug(self.dest_path_parts)
+        # try:
+        #     ## set range to fielsize for local use( TODO)
+        #     self.filesize =  os.path.getsize(self.dest_path_parts)
+        #     logger.info(str(self.filesize) +'XXXXX' + str(irange))
+        # except FileNotFoundError:
+        #     logger.info("NEW remote part, size 0")
+
+
+
         remote_fetch(self.host,
                      self.user,
                      self.password,
@@ -324,7 +364,7 @@ class RemoteCurl():
                          correlationId=self.request_id
                          )
             raise requests.exceptions.HTTPError
-        ranges = build_range(int(size_in_bytes), 6)
+        ranges = build_range(int(size_in_bytes), 4)
 
         downloaders = [
 
@@ -377,7 +417,6 @@ class RemoteCurl():
         try:
             _stdin, stdout, stderr = remote_client.exec_command(cmd)
             out = stdout.readlines()
-            print(out[0].strip())
             err = stderr.readlines()
             if out == [] or err != [] or 'ERROR' in out[0]:
                 self.extra['RESULT'] = 'FAILED'
@@ -410,6 +449,7 @@ class RemoteCurl():
                          correlationId=self.request_id,
                          exc_info=True)
             raise
+
         return self.dest_path
 
     def __call__(self):
@@ -420,9 +460,3 @@ class RemoteCurl():
         return str(parts_)
 
 
-
-# url = 'http://swarmget.do.viaa.be/tests3vents/0k2699098k-left.mp4'
-# test = RemoteCurl(url=url,
-#                   dest_path='/mnt/temptina/xx5.t658',
-#                   request_id='test',
-#                   parts=True)()
