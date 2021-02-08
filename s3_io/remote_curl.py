@@ -194,6 +194,7 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                      exc_info=True,
                      correlationId=request_id,
                      extra=extra)
+
     except IOError as io_e:
         extra['RESULT'] = 'FAILED'
         extra['x-request-id'] = request_id
