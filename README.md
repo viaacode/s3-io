@@ -36,8 +36,10 @@ Description:
 - consult file config.dist for info and rename 
 
 ### Docs
-```todo
-```
+
+-  see docs dir
+- update with handsdown -d (while in root of git dir)
+
 Description:
 
 - Builds the documentation
