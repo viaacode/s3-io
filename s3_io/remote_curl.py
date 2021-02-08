@@ -189,7 +189,7 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
         extra['RESULT'] = 'FAILED'
         extra['x-request-id'] = request_id
         bash_error = str(e)
-        logger.error('ERROR SSH failed: %s, ssh ERROR: %s', dest_path,
+        logger.error('ERROR SSH failed: %s',
                      bash_error,
                      exc_info=True,
                      correlationId=request_id,
@@ -204,6 +204,7 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
 
     except ValueError as val_e:
         extra['RESULT'] = 'FAILED'
+        extra['x-request-id'] = request_id
         logger.error(str(stdout.readlines()),
                      str(stderr.readlines()),
                      str(val_e),
@@ -443,7 +444,7 @@ class RemoteCurl():
                         extra=self.extra)
             remote_client.close()
         except IOError as io_e:
-            logger.error("%s failed to fetch url:%s", str(io_e),
+            logger.error("%s failed to fetch file: %s", str(io_e),
                          self.dest_path,
                          extra=self.extra,
                          correlationId=self.request_id,
