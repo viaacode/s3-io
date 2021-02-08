@@ -185,11 +185,7 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                          extra=extra)
 
         remote_client.close()
-        try:
-            total_speed = sum(speeds)
-            logger.info("TOTAL speed %s",total_speed)
-        except :
-            print('moo')
+
     except IOError as io_e:
         extra['RESULT'] = 'FAILED'
         extra['x-request-id'] = request_id
@@ -320,14 +316,6 @@ class RemoteCurl():
 
         self.dest_path_parts = dest_path + '_part_' + str(idx)
         logger.debug(self.dest_path_parts)
-        # try:
-        #     ## set range to fielsize for local use( TODO)
-        #     self.filesize =  os.path.getsize(self.dest_path_parts)
-        #     logger.info(str(self.filesize) +'XXXXX' + str(irange))
-        # except FileNotFoundError:
-        #     logger.info("NEW remote part, size 0")
-
-
 
         remote_fetch(self.host,
                      self.user,
@@ -400,7 +388,11 @@ class RemoteCurl():
         cmd = """cd "{}" &&
         if [ -f "{}" ]; then echo ERROR file exists! & exit 1;fi
         SAVEIFS=$IFS
-        IFS=$(echo -en "\\n\\b");for i in $(ls *_part_?);do cat "$i" >> "{}.part" ;done && mv "{}.part" "{}" && echo "SUCCESS";IFS=$SAVEIFS
+        IFS=$(echo -en "\\n\\b");
+        if [ `ls *_part_?| wc -l` == 4 ];then echo all parts found;else echo ERROR not enough parts & exit 1;fi
+        for i in $(ls *_part_?);
+        do cat "$i" >> "{}.part" ;done &&
+        mv "{}.part" "{}" && echo "SUCCESS";IFS=$SAVEIFS
         cd ..
         rm -rf "{}" ||echo ERROR & exit 1; echo SUCCESS""".format(
             self.tmp_dir_parts,
@@ -458,5 +450,3 @@ class RemoteCurl():
             return self.remote_get()
         parts_ = self.dwnl_parts()
         return str(parts_)
-
-
