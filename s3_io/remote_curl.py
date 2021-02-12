@@ -80,14 +80,6 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
     logger.info("Remote curl start from server %s",
                 host,
                 correlationId=request_id)
-    remote_client = paramiko.SSHClient()
-    remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    remote_client.connect(host,
-                          port=22,
-                          username=user,
-                          password=password)
-
-
 
     curl_cmd = "curl -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\" " + "-L -J {} ".format(headers) +\
         " -s " + url +\
@@ -102,115 +94,119 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
 
     cmd = check_cmd + pre_cmd + curl_cmd + "|| {}".format(retry_cmd)
 
-
-    logger.debug(cmd)
-    extra = {'app_name': 's3-io',
-             'correlationId': request_id}
-    logger.info("Starting Remote CURL on %s: %s",
-                host,
-                str(cmd),
-                extra=extra,
-                correlationId=request_id)
-    try:
-        _stdin, stdout, stderr = remote_client.exec_command(cmd)
-        out = stdout.readlines()
-        err = stderr.readlines()
-        speeds= []
-        logger.debug("stdout: " + str(out) + "stderr: " + str(err))
-        if 'ERROR' in stdout:
-            raise IOError
-        if stdout != []:
-            result = ''
-            try:
-                speed = str(out[0]).split(',')
-                speeds.append(speed[0])
-                print(speeds)
-                status_code= speed[1]
-                if int(status_code) >= 400:
-                    extra = {'speed': speed[0],
-                             'status_code': speed[1],
-                             'filesize:': speed[2],
-                             'source_url': speed[3],
-                             'total_runtime': speed[4],
-                             'x-request-id': request_id,
-                             'RESULT': 'FAILED'}
-                    logger.error(
-                        'ERROR remote fetch failed ',
-                                            speed[1],
-                                            extra=extra,
-                                            correlationId=request_id
-                                            )
-                    raise HTTPError
-                extra = {'speed': speed[0],
-                     'status_code': speed[1],
-                     'filesize:': speed[2],
-                     'source_url': speed[3],
-                     'total_runtime': speed[4],
-                     'x-request-id': request_id,
-                     'RESULT': 'FINISHED'}
-                logger.info('Task DONE, speed: %s Bytes/s,\
-                        took: %s seconds',
-                        speed[0],
-                        speed[4],
+    with paramiko.SSHClient() as remote_client:
+        try:
+            remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            remote_client.connect(host,
+                                port=22,
+                                username=user,
+                                password=password)
+            logger.debug(cmd)
+            extra = {'app_name': 's3-io',
+                    'correlationId': request_id}
+            logger.info("Starting Remote CURL on %s: %s",
+                        host,
+                        str(cmd),
                         extra=extra,
-                        correlationId=request_id
-                        )
+                        correlationId=request_id)
+            _stdin, stdout, stderr = remote_client.exec_command(cmd)
+            out = stdout.readlines()
+            err = stderr.readlines()
+            speeds= []
+            logger.debug("stdout: " + str(out) + "stderr: " + str(err))
+            if 'ERROR' in stdout:
+                raise IOError
+            if stdout != []:
+                result = ''
+                try:
+                    speed = str(out[0]).split(',')
+                    speeds.append(speed[0])
+                    print(speeds)
+                    status_code= speed[1]
+                    if int(status_code) >= 400:
+                        extra = {'speed': speed[0],
+                                'status_code': speed[1],
+                                'filesize:': speed[2],
+                                'source_url': speed[3],
+                                'total_runtime': speed[4],
+                                'x-request-id': request_id,
+                                'RESULT': 'FAILED'}
+                        logger.error(
+                            'ERROR remote fetch failed ',
+                                                speed[1],
+                                                extra=extra,
+                                                correlationId=request_id
+                                                )
+                        raise HTTPError
+                    extra = {'speed': speed[0],
+                        'status_code': speed[1],
+                        'filesize:': speed[2],
+                        'source_url': speed[3],
+                        'total_runtime': speed[4],
+                        'x-request-id': request_id,
+                        'RESULT': 'FINISHED'}
+                    logger.info('Task DONE, speed: %s Bytes/s,\
+                            took: %s seconds',
+                            speed[0],
+                            speed[4],
+                            extra=extra,
+                            correlationId=request_id
+                            )
 
-            except IndexError:
-                logger.error("ERROR fetch failed: " + str(dest_path))
-                status_code = 500
+                except IndexError:
+                    logger.error("ERROR fetch failed: " + str(dest_path))
+                    status_code = 500
 
 
-            except KeyboardInterrupt:
-                cln_cmd = """ echo XXX rm -rf "{}" """.format(tmp_dir)
-                _stdin, stdout, stderr = remote_client.exec_command(cln_cmd)
-                out = stdout.readlines()
-                print(out)
-                err = stderr.readlines()
+                except KeyboardInterrupt:
+                    cln_cmd = """ echo XXX rm -rf "{}" """.format(tmp_dir)
+                    _stdin, stdout, stderr = remote_client.exec_command(cln_cmd)
+                    out = stdout.readlines()
+                    print(out)
+                    err = stderr.readlines()
 
 
-            extra['RESULT'] = 'DONE'
-            extra['x-request-id'] = request_id
+                extra['RESULT'] = 'DONE'
+                extra['x-request-id'] = request_id
 
 
-        else:
+            else:
+                extra['RESULT'] = 'FAILED'
+                extra['x-request-id'] = request_id
+                bash_error = str(stderr.readlines())
+
+                logger.error('ERROR fetching: %s, ERROR: %s', dest_path,
+                            bash_error,
+                            exc_info=True,
+                            correlationId=request_id,
+                            extra=extra)
+
+        except paramiko.SSHException as e:
             extra['RESULT'] = 'FAILED'
             extra['x-request-id'] = request_id
-            bash_error = str(stderr.readlines())
+            bash_error = str(e)
+            logger.error('ERROR SSH failed: %s',
+                        bash_error,
+                        exc_info=True,
+                        correlationId=request_id,
+                        extra=extra)
 
-            logger.error('ERROR fetching: %s, ERROR: %s', dest_path,
-                         bash_error,
-                         exc_info=True,
-                         correlationId=request_id,
-                         extra=extra)
+        except IOError as io_e:
+            extra['RESULT'] = 'FAILED'
+            extra['x-request-id'] = request_id
+            logger.error("failed to fetch url:%s, ERROR: %s",
+                        url, str(io_e),
+                        correlationId=request_id,
+                        extra=extra)
 
-        remote_client.close()
-    except paramiko.SSHException as e:
-        extra['RESULT'] = 'FAILED'
-        extra['x-request-id'] = request_id
-        bash_error = str(e)
-        logger.error('ERROR SSH failed: %s',
-                     bash_error,
-                     exc_info=True,
-                     correlationId=request_id,
-                     extra=extra)
-
-    except IOError as io_e:
-        extra['RESULT'] = 'FAILED'
-        extra['x-request-id'] = request_id
-        logger.error("failed to fetch url:%s, ERROR: %s",
-                     url, str(io_e),
-                     correlationId=request_id,
-                     extra=extra)
-
-    except ValueError as val_e:
-        extra['RESULT'] = 'FAILED'
-        extra['x-request-id'] = request_id
-        logger.error(str(stdout.readlines()),
-                     str(stderr.readlines()),
-                     str(val_e),
-                     correlationId=request_id,
-                     extra=extra)
+        except ValueError as val_e:
+            extra['RESULT'] = 'FAILED'
+            extra['x-request-id'] = request_id
+            logger.error(str(stdout.readlines()),
+                        str(stderr.readlines()),
+                        str(val_e),
+                        correlationId=request_id,
+                        extra=extra)
 
     return dest_path
 
@@ -389,12 +385,6 @@ class RemoteCurl():
         for dwnl_th in downloaders:
             dwnl_th.join()
         # assamble parts
-        remote_client = paramiko.SSHClient()
-        remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        remote_client.connect(self.host,
-                              port=22,
-                              username=self.user,
-                              password=self.password)
         cmd = """cd "{}" &&
         if [ -f "{}" ]; then echo ERROR file exists! & exit 1;fi
         SAVEIFS=$IFS
@@ -411,46 +401,51 @@ class RemoteCurl():
             self.dest_path,
             self.dest_path,
             self.tmp_dir_parts)
-        logger.info('Remote execute on %s:  %s',
-                    self.host,
-                    str(cmd.rstrip()),
-                    correlationId=self.request_id
-                    )
-        try:
-            _stdin, stdout, stderr = remote_client.exec_command(cmd)
-            out = stdout.readlines()
-            err = stderr.readlines()
-            if out == [] or err != [] or 'ERROR' in out[0]:
-                self.extra['RESULT'] = 'FAILED'
+        with paramiko.SSHClient() as remote_client:
+            try:
+                remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                remote_client.connect(self.host,
+                                    port=22,
+                                    username=self.user,
+                                    password=self.password)
+                logger.info('Remote execute on %s:  %s',
+                            self.host,
+                            str(cmd.rstrip()),
+                            correlationId=self.request_id
+                            )
+                _stdin, stdout, stderr = remote_client.exec_command(cmd)
+                out = stdout.readlines()
+                err = stderr.readlines()
+                if out == [] or err != [] or 'ERROR' in out[0]:
+                    self.extra['RESULT'] = 'FAILED'
+                    self.extra['x-request-id'] = self.request_id
+
+                    ssh_error = str(err)
+                    logger.error('stdout: ' + str(out) + ', bash ERROR:' + ssh_error,
+                                exc_info=True,
+                                extra=self.extra,
+                                correlationId=self.request_id
+                                )
+                    raise IOError
+
+                # else:
+
+                self.extra['RESULT'] = 'DONE'
+
                 self.extra['x-request-id'] = self.request_id
 
-                ssh_error = str(err)
-                logger.error('stdout: ' + str(out) + ', bash ERROR:' + ssh_error,
-                             exc_info=True,
-                             extra=self.extra,
-                             correlationId=self.request_id
-                             )
-                raise IOError
-
-            # else:
-
-            self.extra['RESULT'] = 'DONE'
-
-            self.extra['x-request-id'] = self.request_id
-
-            logger.info('result for assemble %s: %s ',
-                        str(self.dest_path),
-                        str(out[0]).rstrip(),
-                        correlationId=self.request_id,
-                        extra=self.extra)
-            remote_client.close()
-        except IOError as io_e:
-            logger.error("%s failed to fetch file: %s", str(io_e),
-                         self.dest_path,
-                         extra=self.extra,
-                         correlationId=self.request_id,
-                         exc_info=True)
-            raise
+                logger.info('result for assemble %s: %s ',
+                            str(self.dest_path),
+                            str(out[0]).rstrip(),
+                            correlationId=self.request_id,
+                            extra=self.extra)
+            except IOError as io_e:
+                logger.error("%s failed to fetch file: %s", str(io_e),
+                            self.dest_path,
+                            extra=self.extra,
+                            correlationId=self.request_id,
+                            exc_info=True)
+                raise
 
         return self.dest_path
 
