@@ -76,10 +76,10 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
         " -s " + url +\
         " -o \"{}\" ".format(dest_path)
 
-    pre_cmd = """ if [ ! -d "{}" ] ;then mkdir -p "{}"; fi; """.format(tmp_dir,tmp_dir)
+    # pre_cmd = """ if [ ! -d "{}" ] ;then mkdir -p "{}"; fi; """.format(tmp_dir,tmp_dir)
     check_cmd =""" if [ -f "{}" ] ;then echo ERROR & exit 1;fi && """.format(dest_path)
 
-    cmd = check_cmd + pre_cmd + curl_cmd + "|| {}".format(retry_cmd)
+    cmd = check_cmd + curl_cmd + "|| {}".format(retry_cmd)
 
 
     #logger.debug(cmd)

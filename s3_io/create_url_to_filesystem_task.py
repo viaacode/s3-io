@@ -31,7 +31,7 @@ debug_msg = {"service_type": "celery",
              "x-request-id": rnd,
              "source": {
                  "domain": {
-                     "name": "s3.domain"},
+                     "name": "s3be"},
                  "bucket": {
                      "name": "bucket"},
                  "object": {
@@ -39,9 +39,9 @@ debug_msg = {"service_type": "celery",
                  },
              "destination": {
                  "path": "/home/tina/" + rnd + ".MXF",
-                 "host": "hostname",
-                 "user": "user",
-                 "password":'pass'}}
+                 "host": "ccbe",
+                 "user": "tixxx",
+                 "password":'xxxx106'}}
 
 
 def validate_input(msg):
