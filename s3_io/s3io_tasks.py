@@ -129,12 +129,7 @@ def assamble_parts(self, **body):
         host = config.app_cfg['RemoteCurl']['host']
         user = config.app_cfg['RemoteCurl']['user']
         password = config.app_cfg['RemoteCurl']['passw']
-    remote_client = paramiko.SSHClient()
-    remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    remote_client.connect(host,
-                          port=22,
-                          username=user,
-                          password=password)
+
     cmd = """cd "{}" &&
     if [ -f "{}" ]; then echo ERROR file exists! & exit 1;fi
     SAVEIFS=$IFS
@@ -156,47 +151,52 @@ def assamble_parts(self, **body):
         dest_path,
         dest_path,
         dest_path)
-    logger.info('Remote execute on %s:  %s',
-                host,
-                str(cmd.rstrip()),
-                correlationId=id_
-                )
-    try:
-        _stdin, stdout, stderr = remote_client.exec_command(cmd)
-        out = stdout.readlines()
-        err = stderr.readlines()
-        self.extra = {}
-        if out == [] or err != [] or 'ERROR' in out[0]:
-            self.extra['RESULT'] = 'FAILED'
+    with paramiko.SSHClient() as remote_client:
+        try:
+            remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            remote_client.connect(host,
+                                port=22,
+                                username=user,
+                                password=password)
+            logger.info('Remote execute on %s:  %s',
+                        host,
+                        str(cmd.rstrip()),
+                        correlationId=id_
+                        )
+            _stdin, stdout, stderr = remote_client.exec_command(cmd)
+            out = stdout.readlines()
+            err = stderr.readlines()
+            self.extra = {}
+            if out == [] or err != [] or 'ERROR' in out[0]:
+                self.extra['RESULT'] = 'FAILED'
+                self.extra['x-request-id'] = id_
+
+                ssh_error = str(err)
+                logger.error('stdout: ' + str(out) + ', bash ERROR:' + ssh_error,
+                            exc_info=True,
+                            extra=self.extra,
+                            correlationId=id_
+                            )
+                raise IOError
+
+            # else:
+
+            self.extra['RESULT'] = 'DONE'
+
             self.extra['x-request-id'] = id_
 
-            ssh_error = str(err)
-            logger.error('stdout: ' + str(out) + ', bash ERROR:' + ssh_error,
-                         exc_info=True,
-                         extra=self.extra,
-                         correlationId=id_
-                         )
-            raise IOError
-
-        # else:
-
-        self.extra['RESULT'] = 'DONE'
-
-        self.extra['x-request-id'] = id_
-
-        logger.info('result for assemble %s: %s ',
-                    str(dest_path),
-                    str(out[0]).rstrip(),
-                    correlationId=id_,
-                    extra=self.extra)
-        remote_client.close()
-    except IOError as io_e:
-        logger.error("%s failed to fetch url:%s", str(io_e),
-                     dest_path,
-                     extra=self.extra,
-                     correlationId=id_,
-                     exc_info=True)
-        raise
+            logger.info('result for assemble %s: %s ',
+                        str(dest_path),
+                        str(out[0]).rstrip(),
+                        correlationId=id_,
+                        extra=self.extra)
+        except IOError as io_e:
+            logger.error("%s failed to fetch url:%s", str(io_e),
+                        dest_path,
+                        extra=self.extra,
+                        correlationId=id_,
+                        exc_info=True)
+            raise
 
     return dest_path
     #return body
