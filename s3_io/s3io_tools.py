@@ -230,13 +230,13 @@ class SwarmS3Client():
         self.to_ftp_path = to_ftp['ftp_path']
         self.ftp_host = to_ftp['ftp_host']
         self.session = boto3.session.Session()
-        logger.info('opening session s3 client : %s , %s ,%s', self.endpoint,
-                    self.obj, self.key)
+        logger.info('... CONNECTED s3 client : %s , %s ,%s', self.endpoint,
+                    self.obj, self.bucket)
         self.client = self.session.client(
             service_name='s3',
             aws_access_key_id=self.key,
             aws_secret_access_key=self.secret,
-            endpoint_url='http://' + self.endpoint)
+            endpoint_url='https://' + self.endpoint)
 
     def to_file(self):
         """Description:
@@ -294,17 +294,35 @@ class SwarmS3Client():
         url = self.client.generate_presigned_url(
             'get_object', {'Bucket': self.bucket,
                            'Key': self.obj})
-        return url
+        return url.rstrip()
 
     def get_metadata(self):
         """Fetch metadata look for content in Metadata."""
-        k = self.client.head_object(Bucket=self.bucket, Key=self.obj)
-        if 'Metadata' in k:
-            k = k["Metadata"]
+        try:
+            k = self.client.head_object(Bucket=self.bucket, Key=self.obj)
 
-        logger.info(k)
+            if 'Metadata' in k:
+                k = k["Metadata"]
+                extra ={"s3_obj_metadata": k}
+                logger.info('Found  metadata: %s for obj %s in bucket %s',
+                            k,
+                            self.obj,
+                            self.bucket,
+                            extra=extra)
+                return extra
+            else:
+                logger.info('NO metada found! for  for obj %s in bucket %s',
+                           self.obj,
+                           self.bucket,
+                           extra=extra
+                           )
+                raise ClientError
 
-        return k
+
+        except Exception as e:
+            logger.error(str(e))
+        return False
+
     def ffprobe_obj(self):
         cmd = "ffprobe -v quiet -print_format json -show_streams "
         args = shlex.split(cmd)
@@ -314,7 +332,8 @@ class SwarmS3Client():
         ffprobeOutput = json.loads(ffprobeOutput)
         formatted = json.dumps(ffprobeOutput,
                                sort_keys=False)
-        return(str(formatted))
+        logger.info(formatted)
+        return ffprobeOutput
 
 
     def update_metadata_put(self):

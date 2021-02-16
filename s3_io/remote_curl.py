@@ -48,27 +48,6 @@ def timeit(func_name):
     return result
 
 
-def chunks(lst, n_r):
-    """Yield successive n-sized chunks from lst."""
-    for i in range(0, len(lst), n_r):
-        yield lst[i:i + n_r]
-
-
-def build_range(value, numsplits):
-    """Returns list with ranges for parts download"""
-    lst = []
-    part_size = value / numsplits
-    for i in range(numsplits):
-        if i == 0:
-            lst.append('%s-%s' % (i, round(part_size)))
-        else:
-            lst.append('%s-%s' % (round(i * part_size) + 1,
-                                  round(((i + 1) * part_size))))
-        # logger.info(str(lst))
-    logger.debug('Range parts:%s', str(lst))
-    return lst
-
-
 
 def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                  headers=None, request_id=None):
@@ -77,9 +56,9 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
              'user': user,
              'dest_path': dest_path,
              'headers': headers}
-    logger.info("Remote curl start from server %s",
-                host,
-                correlationId=request_id)
+    # logger.info("Remote curl start from server %s",
+    #             host,
+    #             correlationId=request_id)
     remote_client = paramiko.SSHClient()
     remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     remote_client.connect(host,
@@ -103,7 +82,7 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
     cmd = check_cmd + pre_cmd + curl_cmd + "|| {}".format(retry_cmd)
 
 
-    logger.debug(cmd)
+    #logger.debug(cmd)
     extra = {'app_name': 's3-io',
              'correlationId': request_id}
     logger.info("Starting Remote CURL on %s: %s",
@@ -124,7 +103,6 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
             try:
                 speed = str(out[0]).split(',')
                 speeds.append(speed[0])
-                print(speeds)
                 status_code= speed[1]
                 if int(status_code) >= 400:
                     extra = {'speed': speed[0],
@@ -161,12 +139,11 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                 status_code = 500
 
 
-            except KeyboardInterrupt:
-                cln_cmd = """ echo XXX rm -rf "{}" """.format(tmp_dir)
-                _stdin, stdout, stderr = remote_client.exec_command(cln_cmd)
-                out = stdout.readlines()
-                print(out)
-                err = stderr.readlines()
+            # except KeyboardInterrupt:
+            #     cln_cmd = """ echo XXX rm -rf "{}" """.format(tmp_dir)
+            #     _stdin, stdout, stderr = remote_client.exec_command(cln_cmd)
+            #     out = stdout.readlines()
+            #     err = stderr.readlines()
 
 
             extra['RESULT'] = 'DONE'
@@ -202,7 +179,9 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                      correlationId=request_id,
                      extra=extra)
 
-    return dest_path
+   # return dest_path
+
+
 
 
 class RemoteCurl():
@@ -229,7 +208,7 @@ class RemoteCurl():
                  host=None,
                  user=None,
                  headers=None,
-                 parts=False,
+                # parts=False,
                  request_id=None,
                  password=None):
         self.host = host,
@@ -253,32 +232,23 @@ class RemoteCurl():
             self.headers = headers
         else:
             self.headers = ''
-        if parts:
-            self.parts = True
-            dir_, file_name = os.path.split(self.dest_path)
-            base_name, _e = os.path.splitext(file_name)
-            base_name = os.path.basename(os.path.normpath(base_name))
-            self.tmp_dir_parts = dir_ + "/." + base_name
-            self.dest_path_parts = os.path.join(self.tmp_dir_parts, file_name)
-        else:
-            self.parts = False
+
 
     @timeit
     def remote_get(self):
         """Remote download from swarm to local filesystem curl + ssh"""
-        host_header = config.app_cfg['RemoteCurl']['domain_header']
-        curl_headers = "-H 'host: {}'".format(host_header)
-        self.headers = curl_headers
+        # host_header = config.app_cfg['RemoteCurl']['domain_header']
+        # curl_headers = "-H 'host: {}'".format(host_header)
+        # self.headers = curl_headers
 
         extra = {'host': self.host,
                  'user': self.user,
                  'dest_path': self.dest_path,
                  'headers': self.headers}
 
-        logger.debug("Remote curl start from server %s",
+        logger.info("Remote curl start from server %s",
                      self.host,
                      extra=extra)
-
         remote_fetch(self.host,
                      self.user,
                      self.password,
@@ -287,166 +257,8 @@ class RemoteCurl():
                      None,
                      self.headers,
                      self.request_id)
-
-
-    @timeit
-    def download_chunk(self, idx, irange,
-                       url,
-                       dest_path,
-                       user,
-                       password,
-                       request_id,
-                       host):
-        """
-        Description:
-            - RemoteCurl returns tmp_dir as string if parts is True,
-              passes this to assamble (paramiko)
-
-            - Start 4 download threads
-
-            - Join the files (remote command paramiko)
-
-        """
-
-        host_header = config.app_cfg['RemoteCurl']['domain_header']
-
-        curl_headers = "-H 'host: {}'".format(host_header) + \
-                       " -H 'range: bytes={}' -r {}".format(irange, irange)
-        self.headers = curl_headers
-
-        self.dest_path_parts = dest_path + '_part_' + str(idx)
-        logger.debug(self.dest_path_parts)
-
-        remote_fetch(self.host,
-                     self.user,
-                     self.password,
-                     self.url,
-                     self.dest_path_parts,
-                     self.tmp_dir_parts,
-                     self.headers,
-                     self.request_id)
-        logger.info("Part complate", correlationId=self.request_id)
-
-    @timeit
-    def dwnl_parts(self):
-        """Download parts"""
-        host_header = config.app_cfg['RemoteCurl']['domain_header']
-        extra = {'RESULT': 'SCHEDULED',
-                 'x-request-id': self.request_id}
-
-
-        size_in_bytes = requests.head(
-            self.url,
-            allow_redirects=True,
-            headers={'host': host_header,
-                     'Accept-Encoding': 'identity'}
-            ).headers.get('content-length', None)
-        logger.info("%s bytes to download. url: %s",
-                    str(size_in_bytes), str(self.url),
-                    correlationId=self.request_id,
-                    extra=extra)
-        if not size_in_bytes:
-            logger.error("Size cannot be determined url: %s.",
-                         self.url,
-                         extra=extra,
-                         correlationId=self.request_id
-                         )
-            raise requests.exceptions.HTTPError
-        ranges = build_range(int(size_in_bytes), 4)
-
-        downloaders = [
-
-            threading.Thread(
-                target=self.download_chunk,
-                args=(idx,
-                      irange,
-                      self.url,
-                      self.dest_path_parts,
-                      self.user,
-                      self.password,
-                      self.request_id,
-                      self.host),
-
-            )
-            for idx, irange in enumerate(ranges)
-            ]
-        # Start the threads
-        for dwnl_th in downloaders:
-            dwnl_th.start()
-            logger.debug('Thread started for %s',
-                         self.dest_path)
-        # join the Threads!
-        for dwnl_th in downloaders:
-            dwnl_th.join()
-        # assamble parts
-        remote_client = paramiko.SSHClient()
-        remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        remote_client.connect(self.host,
-                              port=22,
-                              username=self.user,
-                              password=self.password)
-        cmd = """cd "{}" &&
-        if [ -f "{}" ]; then echo ERROR file exists! & exit 1;fi
-        SAVEIFS=$IFS
-        IFS=$(echo -en "\\n\\b");
-        if [ `ls *_part_?| wc -l` == 4 ];then echo all parts found;else echo ERROR not enough parts & exit 1;fi
-        for i in $(ls *_part_?);
-        do cat "$i" >> "{}.part" ;done &&
-        mv "{}.part" "{}" && echo "SUCCESS";IFS=$SAVEIFS
-        cd ..
-        rm -rf "{}" ||echo ERROR & exit 1; echo SUCCESS""".format(
-            self.tmp_dir_parts,
-            self.dest_path,
-            self.dest_path,
-            self.dest_path,
-            self.dest_path,
-            self.tmp_dir_parts)
-        logger.info('Remote execute on %s:  %s',
-                    self.host,
-                    str(cmd.rstrip()),
-                    correlationId=self.request_id
-                    )
-        try:
-            _stdin, stdout, stderr = remote_client.exec_command(cmd)
-            out = stdout.readlines()
-            err = stderr.readlines()
-            if out == [] or err != [] or 'ERROR' in out[0]:
-                self.extra['RESULT'] = 'FAILED'
-                self.extra['x-request-id'] = self.request_id
-
-                ssh_error = str(err)
-                logger.error('stdout: ' + str(out) + ', bash ERROR:' + ssh_error,
-                             exc_info=True,
-                             extra=self.extra,
-                             correlationId=self.request_id
-                             )
-                raise IOError
-
-            # else:
-
-            self.extra['RESULT'] = 'DONE'
-
-            self.extra['x-request-id'] = self.request_id
-
-            logger.info('result for assemble %s: %s ',
-                        str(self.dest_path),
-                        str(out[0]).rstrip(),
-                        correlationId=self.request_id,
-                        extra=self.extra)
-            remote_client.close()
-        except IOError as io_e:
-            logger.error("%s failed to fetch url:%s", str(io_e),
-                         self.dest_path,
-                         extra=self.extra,
-                         correlationId=self.request_id,
-                         exc_info=True)
-            raise
-
-        return self.dest_path
+        #return(self.dest_path)
 
     def __call__(self):
         '''Run remote_get'''
-        if not self.parts:
-            return self.remote_get()
-        parts_ = self.dwnl_parts()
-        return str(parts_)
+        self.remote_get()

@@ -5,9 +5,11 @@ Created on Wed Jan  8 16:25:28 2020
 
 @author: tina
 """
+import os
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
 from celery import Celery
+import paramiko
 from kombu import Exchange, Queue
 from s3_io.s3io_tools import SwarmS3Client, SwarmIo
 import s3_io.celeryconfig as celeryconfig
@@ -65,6 +67,7 @@ def swarm_to_remote(self, **body):
     logger.debug(str(body))
     dest_path = body['body']['destination']['path']
     body = body['body']
+    print(body['headers'])
     if 'user' in body['destination']:
         user = body['destination']['user']
         host = body['destination']['host']
@@ -91,18 +94,113 @@ def swarm_to_remote(self, **body):
                                     dest_path=dest_path,
                                     host=host,
                                     user=user,
+                                    headers=body['headers'],
                                     password=password,
-                                    request_id=id_,
-                                    parts=True)()
+                                    request_id=id_)()
 
-        return str(dest_file_path)
-    except HTTPError  as http_e:
+        #return str(dest_file_path)
+    except HTTPError as http_e:
         logger.error('#### ERROR %s :Task swarm_to_remote failed for id %s ',
                      str(http_e),
                      str(self.request.id),
                      correlationId=id_,
                      exc_info=True)
         raise self.retry(coutdown=1, exc=http_e, max_retries=5)
+
+
+
+
+
+
+@app.task(max_retries=3, bind=True)
+def assamble_parts(self, **body):
+    body = body['kwargs']
+  #  dest_path = body['body']['destination']['path']
+    dest_path = body['destination']['path']
+    dest_dir, _dest_file = os.path.split(dest_path)
+    #body = body['body']
+    id_ = body['x-request-id']
+
+    if 'user' in body['destination']:
+        user = body['destination']['user']
+        host = body['destination']['host']
+        password = body['destination']['password']
+    else:
+        host = config.app_cfg['RemoteCurl']['host']
+        user = config.app_cfg['RemoteCurl']['user']
+        password = config.app_cfg['RemoteCurl']['passw']
+    remote_client = paramiko.SSHClient()
+    remote_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    remote_client.connect(host,
+                          port=22,
+                          username=user,
+                          password=password)
+    cmd = """cd "{}" &&
+    if [ -f "{}" ]; then echo ERROR file exists! & exit 1;fi
+    SAVEIFS=$IFS
+    IFS=$(echo -en "\\n\\b");
+    if [ `ls {}.part?| wc -l` == 4 ];then echo all parts found;else echo ERROR not enough parts & exit 1;fi
+    for i in $(ls {}.part?);
+    do cat "$i" >> "{}.part" ;done &&
+    mv "{}.part" "{}" && echo "SUCCESS";
+    rm -rf {}.part* ||echo ERROR & exit 1; echo SUCCESS
+    IFS=$SAVEIFS;
+
+    """.format(
+        dest_dir,
+        dest_path,
+        dest_path,
+        dest_path,
+        dest_path,
+        dest_path,
+        dest_path,
+        dest_path,
+        dest_path)
+    logger.info('Remote execute on %s:  %s',
+                host,
+                str(cmd.rstrip()),
+                correlationId=id_
+                )
+    try:
+        _stdin, stdout, stderr = remote_client.exec_command(cmd)
+        out = stdout.readlines()
+        err = stderr.readlines()
+        self.extra = {}
+        if out == [] or err != [] or 'ERROR' in out[0]:
+            self.extra['RESULT'] = 'FAILED'
+            self.extra['x-request-id'] = id_
+
+            ssh_error = str(err)
+            logger.error('stdout: ' + str(out) + ', bash ERROR:' + ssh_error,
+                         exc_info=True,
+                         extra=self.extra,
+                         correlationId=id_
+                         )
+            raise IOError
+
+        # else:
+
+        self.extra['RESULT'] = 'DONE'
+
+        self.extra['x-request-id'] = id_
+
+        logger.info('result for assemble %s: %s ',
+                    str(dest_path),
+                    str(out[0]).rstrip(),
+                    correlationId=id_,
+                    extra=self.extra)
+        remote_client.close()
+    except IOError as io_e:
+        logger.error("%s failed to fetch url:%s", str(io_e),
+                     dest_path,
+                     extra=self.extra,
+                     correlationId=id_,
+                     exc_info=True)
+        raise
+
+    return dest_path
+    #return body
+
 
 
 @app.task(max_retries=3, bind=True)
@@ -144,3 +242,4 @@ def s3_to_ftp(self, **body):
         return True
     except IOError as io_e:
         raise self.retry(coutdown=1, exc=io_e, max_retries=2)
+

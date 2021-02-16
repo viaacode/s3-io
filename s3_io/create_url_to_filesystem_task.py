@@ -13,15 +13,16 @@ Created on Tue Mar  3 14:12:09 2020
 0k2699098k-left.mp4
 @author: tina
 """
-
+import json
 import uuid
+import requests
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
-from s3_io.s3io_tasks import swarm_to_remote
-
+from s3_io.s3io_tasks import swarm_to_remote, assamble_parts
+from celery import chord
 config = ConfigParser()
 logger = logging.get_logger('s3io.task_creator')
-extra = {'app_name': 's3io'}
+extra = {'app_name': 's3-io'}
 
 rnd = str(uuid.uuid4().hex)
 debug_msg = {"service_type": "celery",
@@ -30,17 +31,17 @@ debug_msg = {"service_type": "celery",
              "x-request-id": rnd,
              "source": {
                  "domain": {
-                     "name": "s3-qas.viaa.be"},
+                     "name": "s3.domain"},
                  "bucket": {
-                     "name": "mam-highresvideo"},
+                     "name": "bucket"},
                  "object": {
-                     "key": "202007241019597010024191220005056B94C300000016432B00000D0F003957.mxf"}
+                     "key": "202101212121294010024190133005056B91BF30000006324B00000D0F154473.mp4"}
                  },
              "destination": {
                  "path": "/home/tina/" + rnd + ".MXF",
-                 "host": "dg-qas-tra-01.dg.viaa.be",
-                 "user": "454",
-                 "password":'12115@02106'}}
+                 "host": "hostname",
+                 "user": "user",
+                 "password":'pass'}}
 
 
 def validate_input(msg):
@@ -64,38 +65,103 @@ def validate_input(msg):
     return False
 
 
-def _file(msg):
-    return msg['s3']['object']['key']
+# def _file(msg):
+#     return msg['s3']['object']['key']
+
+
+
+def build_range(value, numsplits):
+    """Returns list with ranges for parts download"""
+    lst = []
+    part_size = value / numsplits
+    for i in range(numsplits):
+        if i == 0:
+            lst.append('%s-%s' % (i, round(part_size)))
+        else:
+            lst.append('%s-%s' % (round(i * part_size) + 1,
+                                  round(((i + 1) * part_size))))
+        # logger.info(str(lst))
+    logger.debug('Range parts:%s', str(lst))
+    return lst
 
 
 def process(msg):
     """The processing:
 
-          - starts a celery job
+         - starts a celery job
 
-     Args:
+    Args:
 
-          - msg: dict
+         - msg: dict
 
-     Returns:
+    Returns:
 
-          - task_id: string
-     """
+         - task_id: string
+    """
+    downloaders = []
+    assamble_msg = json.dumps(msg)
     if validate_input(msg):
-        key = msg['source']['object']['key']
+
         request_id = msg["x-request-id"]
+
+        swarmurl = config.app_cfg['castor']['swarmurl']
+        bucket = msg['source']['bucket']['name']
+        key = msg['source']['object']['key']
+        url = 'http://' + swarmurl + '/' + bucket + '/' + key
+        host_header = config.app_cfg['RemoteCurl']['domain_header']
+        size_in_bytes = requests.head(
+            url,
+            allow_redirects=True,
+            headers={'host': host_header,
+                     'Accept-Encoding': 'identity'}
+            ).headers.get('content-length', None)
+        logger.info("%s bytes to download. url: %s",
+                    str(size_in_bytes), str(url),
+                    correlationId=request_id,
+                    extra=extra)
+        if not size_in_bytes:
+            logger.error("Size cannot be determined url: %s.",
+                         url,
+                         extra=extra,
+                         correlationId=request_id
+                         )
+            raise requests.exceptions.HTTPError
+        ranges = build_range(int(size_in_bytes), 4)
         dest_path = msg["destination"]["path"]
-        job = swarm_to_remote.s(body=msg)
-        celery_task = job.apply_async(retry=True)
-        job_id = celery_task.id
-        logger.info('task Filesystem task_id: %s for object_key %s to file %s',
-                    job_id,
-                    key,
-                    dest_path,
-                    cotrrelationId=request_id)
-        return celery_task
-    # else:
-    logger.error('Not a valid message')
+
+        for idx, irange in enumerate(ranges):
+            prt_msg = msg
+
+            dest_path_part = dest_path + '.part' + str(idx)
+            prt_msg["destination"]["path"] = dest_path_part
+            curl_headers = "-H 'host: {}'".format(host_header) + \
+                           " -H 'range: bytes={}' -r {}".format(irange, irange)
+
+            prt_msg['headers'] = curl_headers
+
+            downloaders.append(json.dumps(prt_msg))
+
+
+        prt_group =[]
+        for d in downloaders:
+            job =  swarm_to_remote.si(body=json.loads(d))
+            prt_group.append(job)
+
+        jobs = chord(prt_group)(assamble_parts.si(args=None,
+                                                  kwargs=json.loads(assamble_msg),
+                                                  retry=True))
+        #print(assamble.args)
+        #celery_task = jobs.apply_async(retry=True,)
+       # jobs_id = celery_task.id
+        # logger.info('task Filesystem task_id: %s for object_key %s to file %s',
+        #             jobs_id,
+        #             key,
+        #             dest_path,
+        #             cotrrelationId=request_id)
+        # #return celery_task
+    else:
+        logger.error('Not a valid message')
+        raise OSError
     return True
 
 if __name__ == "__main__":
