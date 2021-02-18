@@ -8,11 +8,8 @@ Remote curl:
 - [S3io](../README.md#s3io) / [Modules](../MODULES.md#s3io-modules) / [S3 Io](index.md#s3-io) / RemoteCurl
     - [RemoteCurl](#remotecurl)
         - [RemoteCurl().\_\_call\_\_](#remotecurl__call__)
-        - [RemoteCurl().download_chunk](#remotecurldownload_chunk)
-        - [RemoteCurl().dwnl_parts](#remotecurldwnl_parts)
         - [RemoteCurl().remote_get](#remotecurlremote_get)
-    - [build_range](#build_range)
-    - [chunks](#chunks)
+    - [RemoteFetchException](#remotefetchexception)
     - [decorator](#decorator)
     - [remote_fetch](#remote_fetch)
     - [timeit](#timeit)
@@ -29,7 +26,7 @@ r=RemoteCurl(url="http://10.50.152.194:80/tests3vents/0k2699098k-left.mp4", dest
 
 ## RemoteCurl
 
-[[find in source code]](../../s3_io/remote_curl.py#L185)
+[[find in source code]](../../s3_io/remote_curl.py#L179)
 
 ```python
 class RemoteCurl():
@@ -39,7 +36,6 @@ class RemoteCurl():
         host=None,
         user=None,
         headers=None,
-        parts=False,
         request_id=None,
         password=None,
     ):
@@ -61,7 +57,7 @@ class RemoteCurl():
 
 ### RemoteCurl().\_\_call\_\_
 
-[[find in source code]](../../s3_io/remote_curl.py#L413)
+[[find in source code]](../../s3_io/remote_curl.py#L254)
 
 ```python
 def __call__():
@@ -69,54 +65,9 @@ def __call__():
 
 Run remote_get
 
-### RemoteCurl().download_chunk
-
-[[find in source code]](../../s3_io/remote_curl.py#L268)
-
-```python
-@timeit
-def download_chunk(
-    idx,
-    irange,
-    url,
-    dest_path,
-    user,
-    password,
-    request_id,
-    host,
-):
-```
-
-Description:
-    - RemoteCurl returns tmp_dir as string if parts is True,
-      passes this to assamble (paramiko)
-
-- Start 4 download threads
-
-- Join the files (remote command paramiko)
-
-#### See also
-
-- [timeit](#timeit)
-
-### RemoteCurl().dwnl_parts
-
-[[find in source code]](../../s3_io/remote_curl.py#L302)
-
-```python
-@timeit
-def dwnl_parts():
-```
-
-Download parts
-
-#### See also
-
-- [timeit](#timeit)
-
 ### RemoteCurl().remote_get
 
-[[find in source code]](../../s3_io/remote_curl.py#L243)
+[[find in source code]](../../s3_io/remote_curl.py#L229)
 
 ```python
 @timeit
@@ -129,29 +80,19 @@ Remote download from swarm to local filesystem curl + ssh
 
 - [timeit](#timeit)
 
-## build_range
+## RemoteFetchException
 
-[[find in source code]](../../s3_io/remote_curl.py#L57)
-
-```python
-def build_range(value, numsplits):
-```
-
-Returns list with ranges for parts download
-
-## chunks
-
-[[find in source code]](../../s3_io/remote_curl.py#L51)
+[[find in source code]](../../s3_io/remote_curl.py#L31)
 
 ```python
-def chunks(lst, n_r):
+class RemoteFetchException(Exception):
 ```
 
-Yield successive n-sized chunks from lst.
+Exception raised when the remote fetch has failed
 
 ## decorator
 
-[[find in source code]](../../s3_io/remote_curl.py#L30)
+[[find in source code]](../../s3_io/remote_curl.py#L37)
 
 ```python
 def decorator(func_n):
@@ -161,7 +102,7 @@ Make function d a decorator: d wraps a function fn.
 
 ## remote_fetch
 
-[[find in source code]](../../s3_io/remote_curl.py#L73)
+[[find in source code]](../../s3_io/remote_curl.py#L59)
 
 ```python
 def remote_fetch(
@@ -180,7 +121,7 @@ Remote download from swarm to local filesystem curl + ssh
 
 ## timeit
 
-[[find in source code]](../../s3_io/remote_curl.py#L38)
+[[find in source code]](../../s3_io/remote_curl.py#L45)
 
 ```python
 @decorator

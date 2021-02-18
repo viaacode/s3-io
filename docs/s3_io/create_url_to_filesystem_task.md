@@ -5,6 +5,7 @@
 Created on Tue Mar  3 14:12:09 2020
 
 - [S3io](../README.md#s3io) / [Modules](../MODULES.md#s3io-modules) / [S3 Io](index.md#s3-io) / Create Url To Filesystem Task
+    - [build_range](#build_range)
     - [process](#process)
     - [validate_input](#validate_input)
 
@@ -18,9 +19,19 @@ s3_io.s3io_tasks.swarm_to_remote.s(body=msg)
 0k2699098k-left.mp4
 @author: tina
 
+## build_range
+
+[[find in source code]](../../s3_io/create_url_to_filesystem_task.py#L57)
+
+```python
+def build_range(value, numsplits):
+```
+
+Returns list with ranges for parts download
+
 ## process
 
-[[find in source code]](../../s3_io/create_url_to_filesystem_task.py#L71)
+[[find in source code]](../../s3_io/create_url_to_filesystem_task.py#L72)
 
 ```python
 def process(msg):
@@ -40,7 +51,7 @@ The processing:
 
 ## validate_input
 
-[[find in source code]](../../s3_io/create_url_to_filesystem_task.py#L46)
+[[find in source code]](../../s3_io/create_url_to_filesystem_task.py#L31)
 
 ```python
 def validate_input(msg):
