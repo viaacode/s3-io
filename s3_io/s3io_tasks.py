@@ -13,7 +13,7 @@ import paramiko
 from kombu import Exchange, Queue
 from s3_io.s3io_tools import SwarmS3Client, SwarmIo
 import s3_io.celeryconfig as celeryconfig
-from s3_io.remote_curl import RemoteCurl
+from s3_io.remote_curl import RemoteCurl, RemoteFetchException
 from requests.exceptions import HTTPError
 app = Celery('s3io',)
 app.config_from_object(celeryconfig)
@@ -99,13 +99,12 @@ def swarm_to_remote(self, **body):
                                     request_id=id_)()
 
         #return str(dest_file_path)
-    except HTTPError as http_e:
-        logger.error('#### ERROR %s :Task swarm_to_remote failed for id %s ',
-                     str(http_e),
+    except RemoteFetchException as rf_e:
+        logger.error('#### ERROR :Task swarm_to_remote failed for id %s. Retrying...',
                      str(self.request.id),
                      correlationId=id_,
                      exc_info=True)
-        raise self.retry(coutdown=1, exc=http_e, max_retries=5)
+        raise self.retry(coutdown=1, exc=rf_e, max_retries=5)
 
 
 

@@ -19,12 +19,19 @@ import time
 import threading
 from functools import update_wrapper
 import paramiko
+from paramiko.ssh_exception import SSHException
 import requests
 from viaa.observability import logging
 from requests.exceptions import HTTPError
 from viaa.configuration import ConfigParser
 config = ConfigParser()
 logger = logging.get_logger('s3io.remote_curl')
+
+
+class RemoteFetchException(Exception):
+    """ Exception raised when the remote fetch has failed
+    """
+    pass
 
 
 def decorator(func_n):
@@ -62,11 +69,11 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
 
 
     curl_cmd = "curl -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\" " + "-L -J {} ".format(headers) +\
-        " -s " + url +\
+        " -S -s " + url +\
         " -o \"{}\" ".format(dest_path)
 
     retry_cmd = "curl -C -w \"%{speed_download},%{http_code},%{size_download},%{url_effective},%{time_total}\" " + "-L -J {} ".format(headers) +\
-        " -s " + url +\
+        " -S -s " + url +\
         " -o \"{}\" ".format(dest_path)
 
     # pre_cmd = """ if [ ! -d "{}" ] ;then mkdir -p "{}"; fi; """.format(tmp_dir,tmp_dir)
@@ -94,12 +101,23 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
             err = stderr.readlines()
             speeds= []
             logger.debug("stdout: " + str(out) + "stderr: " + str(err))
-            if 'ERROR' in stdout:
-                raise IOError
-            if stdout != []:
+
+            if err:
+                # retry
+                extra['RESULT'] = 'FAILED'
+                extra['x-request-id'] = request_id
+                bash_error = str(err)
+
+                logger.error('ERROR fetching: %s, ERROR: %s', dest_path,
+                            bash_error,
+                            exc_info=True,
+                            correlationId=request_id,
+                            extra=extra)
+                raise RemoteFetchException
+            if out:
                 result = ''
                 try:
-                    speed = str(out[0]).split(',')
+                    speed = out[0].split(',')
                     speeds.append(speed[0])
                     status_code= speed[1]
                     if int(status_code) >= 400:
@@ -116,7 +134,7 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                                                 extra=extra,
                                                 correlationId=request_id
                                                 )
-                        raise HTTPError
+                        raise RemoteFetchException
                     extra = {'speed': speed[0],
                         'status_code': speed[1],
                         'filesize:': speed[2],
@@ -133,8 +151,11 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                             )
 
                 except IndexError:
-                    logger.error("ERROR fetch failed: " + str(dest_path))
-                    status_code = 500
+                    logger.error(
+                        "ERROR fetch failed: " + str(dest_path),
+                        correlationId=request_id
+                    )
+                    raise RemoteFetchException
 
 
                 # except KeyboardInterrupt:
@@ -143,37 +164,12 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                 #     out = stdout.readlines()
                 #     err = stderr.readlines()
 
-
-                extra['RESULT'] = 'DONE'
-                extra['x-request-id'] = request_id
-
-
-            else:
-                extra['RESULT'] = 'FAILED'
-                extra['x-request-id'] = request_id
-                bash_error = str(stderr.readlines())
-
-                logger.error('ERROR fetching: %s, ERROR: %s', dest_path,
-                            bash_error,
-                            exc_info=True,
-                            correlationId=request_id,
-                            extra=extra)
-
-        except IOError as io_e:
+        except SSHException as ssh_e:
             extra['RESULT'] = 'FAILED'
-            extra['x-request-id'] = request_id
-            logger.error("failed to fetch url:%s, ERROR: %s",
-                        url, str(io_e),
+            logger.error(str(ssh_e),
                         correlationId=request_id,
                         extra=extra)
-
-        except ValueError as val_e:
-            extra['RESULT'] = 'FAILED'
-            logger.error(str(stdout.readlines()),
-                        str(stderr.readlines()),
-                        str(val_e),
-                        correlationId=request_id,
-                        extra=extra)
+            raise RemoteFetchException
 
    # return dest_path
 
