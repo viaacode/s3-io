@@ -26,8 +26,6 @@ extra = {'app_name': 's3-io'}
 
 rnd = str(uuid.uuid4().hex)
 
-
-
 def validate_input(msg):
     """
     Description:
@@ -47,8 +45,6 @@ def validate_input(msg):
                     extra=extra)
         return True
     return False
-
-
 
 
 def build_range(value, numsplits):

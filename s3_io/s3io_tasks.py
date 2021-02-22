@@ -30,7 +30,7 @@ app.conf.task_queues = (Queue('s3io-prio',
 
 
 
-#app.conf.task_default_queue = 's3io'
+app.conf.task_default_queue = 's3io-prio'
 app.conf.task_default_exchange_type = 'direct'
 #app.conf.task_default_routing_key = 's3io'
 
@@ -106,7 +106,7 @@ def swarm_to_remote(self, **body):
                                     password=password,
                                     request_id=id_)()
 
-        #return str(dest_file_path)
+        return str(dest_file_path)
     except RemoteFetchException as rf_e:
         logger.error('#### ERROR :Task swarm_to_remote failed for id %s. Retrying...',
                      str(self.request.id),

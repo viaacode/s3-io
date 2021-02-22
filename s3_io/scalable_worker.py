@@ -5,11 +5,6 @@ Created on Sat Jan 16 08:25:18 2021
 
 @author: tina
 """
-import sys
-import threading
-import atexit
-from s3_io.event_consumer import __main__ as Consume
-from s3_io.s3io_api import __main__ as Api
 from s3_io.s3io_tasks import app
 from viaa.observability import logging
 from viaa.configuration import ConfigParser
@@ -54,9 +49,6 @@ def log_task_Started(sender, task_id, task, args, **kwargs):
 def on_celery_setup_logging(**kwargs):
     """tO MESS WITH THE LOGGER."""
     pass
-    # return True
-
-
 
 
 def worker():
