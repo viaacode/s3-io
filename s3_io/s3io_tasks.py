@@ -20,12 +20,19 @@ app.config_from_object(celeryconfig)
 config = ConfigParser()
 logger = logging.get_logger('s3io')
 app.config_from_object(celeryconfig)
-app.conf.task_queues = (Queue('s3io',
+app.conf.task_queues = (Queue('s3io-prio',
                               Exchange('py-worker-s3io'),
-                              routing_key='s3io'),)
-app.conf.task_default_queue = 's3io'
+                              routing_key='s3io-prio',
+                              queue_arguments={'x-max-priority': 10}),
+                        Queue('s3io-assemble', Exchange('py-worker-s3io'),
+              routing_key='assamble-prio',
+              queue_arguments={'x-max-priority': 5}))
+
+
+
+#app.conf.task_default_queue = 's3io'
 app.conf.task_default_exchange_type = 'direct'
-app.conf.task_default_routing_key = 's3io'
+#app.conf.task_default_routing_key = 's3io'
 
 s3access_key = config.app_cfg['S3_TO_FTP']['s3access_key']
 s3secret_key = config.app_cfg['S3_TO_FTP']['s3secret_key']
@@ -63,11 +70,12 @@ def swarm_to_ftp(self, **body):
 
 @app.task(max_retries=5, bind=True)
 def swarm_to_remote(self, **body):
-    '''URL to remote'''
+    """URL to remote"""
+
     logger.debug(str(body))
     dest_path = body['body']['destination']['path']
     body = body['body']
-    print(body['headers'])
+    #print(body['headers'])
     if 'user' in body['destination']:
         user = body['destination']['user']
         host = body['destination']['host']
@@ -113,6 +121,7 @@ def swarm_to_remote(self, **body):
 
 @app.task(max_retries=3, bind=True)
 def assamble_parts(self, **body):
+
     body = body['kwargs']
   #  dest_path = body['body']['destination']['path']
     dest_path = body['destination']['path']

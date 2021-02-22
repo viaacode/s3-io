@@ -65,7 +65,7 @@ def worker():
         "worker",
         "--loglevel=INFO",
         "-n=s3-io-worker@%h",
-        "--concurrency=4",
+        "--concurrency=5",
         "-E",
     ]
     logger.info("********* starting the worker ********* ")

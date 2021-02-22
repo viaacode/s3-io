@@ -158,11 +158,6 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                     raise RemoteFetchException
 
 
-                # except KeyboardInterrupt:
-                #     cln_cmd = """ echo XXX rm -rf "{}" """.format(tmp_dir)
-                #     _stdin, stdout, stderr = remote_client.exec_command(cln_cmd)
-                #     out = stdout.readlines()
-                #     err = stderr.readlines()
 
         except SSHException as ssh_e:
             extra['RESULT'] = 'FAILED'
@@ -171,7 +166,7 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                         extra=extra)
             raise RemoteFetchException
 
-   # return dest_path
+    return dest_path
 
 
 
