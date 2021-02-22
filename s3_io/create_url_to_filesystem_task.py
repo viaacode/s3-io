@@ -123,19 +123,22 @@ def process(msg):
             downloaders.append(json.dumps(prt_msg))
 
         prt_group = []
-        for d in downloaders:
-            job = swarm_to_remote.si(body=json.loads(d)).set(
-                                                      queue='s3io-prio')
-            prt_group.append(job)
 
-        jobs = chord(prt_group)(
-            assamble_parts.si(args=None,
-                              kwargs=json.loads(assamble_msg),
-                              retry=True).set(
-                                  queue='s3io-assemble'))
+        for d in downloaders:
+            job = swarm_to_remote.si(body=json.loads(d))
+            prt_group.append(job)
+            logger.debug("Downloader JOB %s ", json.loads(d)["source"],
+                         downloader_target=json.loads(d)["destination"]["path"],
+                         extra=extra)
+
+        jobs = chord(prt_group)(assamble_parts.si(args=None,
+                                                  kwargs=json.loads(assamble_msg),
+                                                  retry=True))
+        logger.debug("job id: %s ,partent id: %s",
+                     jobs.id,
+                     jobs.parent)
 
     else:
         logger.error('Not a valid message')
         raise OSError
     return True
-
