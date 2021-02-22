@@ -121,7 +121,8 @@ def process(msg):
         prt_group = []
 
         for d in downloaders:
-            job = swarm_to_remote.si(body=json.loads(d))
+            job = swarm_to_remote.si(body=json.loads(d)).set(
+                                                      queue='s3io-prio')
             prt_group.append(job)
             logger.debug("Downloader JOB %s ", json.loads(d)["source"],
                          downloader_target=json.loads(d)["destination"]["path"],
@@ -129,7 +130,10 @@ def process(msg):
 
         jobs = chord(prt_group)(assamble_parts.si(args=None,
                                                   kwargs=json.loads(assamble_msg),
-                                                  retry=True))
+                                                  retry=True).set(
+                                                      queue='s3io-assemble')
+                                )
+
         logger.debug("job id: %s ,partent id: %s",
                      jobs.id,
                      jobs.parent)

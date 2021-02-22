@@ -30,7 +30,7 @@ app.conf.task_queues = (Queue('s3io-prio',
 
 
 
-app.conf.task_default_queue = 's3io-prio'
+#app.conf.task_default_queue = 's3io-prio'
 app.conf.task_default_exchange_type = 'direct'
 #app.conf.task_default_routing_key = 's3io'
 
