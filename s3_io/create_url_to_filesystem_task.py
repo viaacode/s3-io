@@ -25,23 +25,6 @@ logger = logging.get_logger('s3io.task_creator')
 extra = {'app_name': 's3-io'}
 
 rnd = str(uuid.uuid4().hex)
-debug_msg = {"service_type": "celery",
-             "service_name": "s3_to_filesystem",
-             "service_version": "0.1",
-             "x-request-id": rnd,
-             "source": {
-                 "domain": {
-                     "name": "s3be"},
-                 "bucket": {
-                     "name": "bucket"},
-                 "object": {
-                     "key": "202101212121294010024190133005056B91BF30000006324B00000D0F154473.mp4"}
-                 },
-             "destination": {
-                 "path": "/home/tina/" + rnd + ".MXF",
-                 "host": "ccbe",
-                 "user": "tixxx",
-                 "password":'xxxx106'}}
 
 
 def validate_input(msg):
@@ -141,28 +124,24 @@ def process(msg):
 
             downloaders.append(json.dumps(prt_msg))
 
-
-        prt_group =[]
+        prt_group = []
         for d in downloaders:
-            job =  swarm_to_remote.si(body=json.loads(d))
+            job = swarm_to_remote.si(body=json.loads(d))
             prt_group.append(job)
+            logger.debug("Downloader JOB %s ",json.loads(d)["source"],
+                         request_msg=json.loads(d),
+                         extra=extra)
 
         jobs = chord(prt_group)(assamble_parts.si(args=None,
                                                   kwargs=json.loads(assamble_msg),
                                                   retry=True))
-        #print(assamble.args)
-        #celery_task = jobs.apply_async(retry=True,)
-       # jobs_id = celery_task.id
-        # logger.info('task Filesystem task_id: %s for object_key %s to file %s',
-        #             jobs_id,
-        #             key,
-        #             dest_path,
-        #             cotrrelationId=request_id)
-        # #return celery_task
+        logger.debug("job id: %s ,partent id: %s",
+                     jobs.id,
+                     jobs.parent)
+
+
     else:
         logger.error('Not a valid message')
         raise OSError
     return True
 
-if __name__ == "__main__":
-    process(debug_msg)
