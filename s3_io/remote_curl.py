@@ -114,7 +114,7 @@ def remote_fetch(host, user, password, url, dest_path, tmp_dir=None,
                                  'x-request-id': request_id,
                                  'RESULT': 'FAILED'}
                         logger.error(
-                            'ERROR remote fetch failed ',
+                            'ERROR remote fetch failed with status code: %s',
                             speed[1],
                             extra=extra,
                             correlationId=request_id
