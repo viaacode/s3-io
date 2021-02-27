@@ -23,3 +23,4 @@ accept_content = ['json']
 enable_utc = True
 worker_prefetch_multiplier = 1
 result_persistent = True
+result_chord_retry_interval = 30
