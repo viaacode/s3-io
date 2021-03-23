@@ -1,0 +1,93 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  creationTimestamp: 2021-03-22T14:52:50Z
+  labels:
+    name: docker-build
+  managedFields:
+  - apiVersion: build.openshift.io/v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:labels:
+          .: {}
+          f:name: {}
+      f:spec:
+        f:output:
+          f:to:
+            .: {}
+            f:kind: {}
+            f:name: {}
+        f:runPolicy: {}
+        f:source:
+          f:git:
+            .: {}
+            f:uri: {}
+          f:type: {}
+        f:strategy:
+          f:dockerStrategy:
+            .: {}
+            f:env: {}
+            f:from:
+              .: {}
+              f:kind: {}
+              f:name: {}
+          f:type: {}
+    manager: Mozilla
+    operation: Update
+    time: 2021-03-22T15:27:12Z
+  - apiVersion: build.openshift.io/v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:spec:
+        f:triggers: {}
+      f:status:
+        f:lastVersion: {}
+    manager: openshift-apiserver
+    operation: Update
+    time: 2021-03-23T18:04:28Z
+  - apiVersion: build.openshift.io/v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:spec:
+        f:source:
+          f:git:
+            f:ref: {}
+    manager: oc
+    operation: Update
+    time: 2021-03-23T18:56:08Z
+  name: docker-build
+  namespace: meemoo-infra
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: s3io:latest
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      ref: "dev-1497-split-queues"
+      uri: https://github.com/viaacode/s3-io.git
+    type: Git
+  strategy:
+    dockerStrategy:
+      env:
+      - name: app
+        value: s3io
+      from:
+        kind: ImageStreamTag
+        name: python:3.8-slim
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - github:
+      secret: secret101
+    type: GitHub
+  - imageChange:
+      lastTriggeredImageID: python@sha256:844516c3ee480be693de258bf25c033eca7b9b0b1d75b2fbdc11c0b73233eb90
+    type: ImageChange
+  - type: ConfigChange
