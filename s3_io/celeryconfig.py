@@ -13,7 +13,6 @@ if 'BROKER_URL' in os.environ:
     broker_url = os.environ.get('BROKER_URL')
 else:
     broker_url = CONFIG.app_cfg['Celery']['broker_url']
-BROKER_URL = CONFIG.app_cfg['Celery']['broker_url']
 if 'RESULT_BACKEND' in os.environ:
     result_backend = os.environ.get('RESULT_BACKEND')
 else:
@@ -24,3 +23,4 @@ accept_content = ['json']
 enable_utc = True
 worker_prefetch_multiplier = 1
 result_persistent = True
+result_chord_retry_interval = 30

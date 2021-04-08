@@ -14,7 +14,7 @@ Created on Sat Jan 16 08:25:18 2021
 
 ## log_task_Started
 
-[[find in source code]](../../s3_io/scalable_worker.py#L34)
+[[find in source code]](../../s3_io/scalable_worker.py#L33)
 
 ```python
 @task_prerun.connect
@@ -25,7 +25,7 @@ RUNS ON TASK START
 
 ## log_task_complete
 
-[[find in source code]](../../s3_io/scalable_worker.py#L25)
+[[find in source code]](../../s3_io/scalable_worker.py#L24)
 
 ```python
 @task_postrun.connect
@@ -36,7 +36,7 @@ Runs on task complete
 
 ## on_celery_setup_logging
 
-[[find in source code]](../../s3_io/scalable_worker.py#L54)
+[[find in source code]](../../s3_io/scalable_worker.py#L53)
 
 ```python
 @setup_logging.connect
@@ -47,10 +47,10 @@ tO MESS WITH THE LOGGER.
 
 ## worker
 
-[[find in source code]](../../s3_io/scalable_worker.py#L63)
+[[find in source code]](../../s3_io/scalable_worker.py#L62)
 
 ```python
 def worker():
 ```
 
-sTARTS the celery worker THREAD
+Starts the celery worker THREAD

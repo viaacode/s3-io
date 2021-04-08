@@ -5,15 +5,25 @@
 Created on Wed Jan  8 16:25:28 2020
 
 - [S3io](../README.md#s3io) / [Modules](../MODULES.md#s3io-modules) / [S3 Io](index.md#s3-io) / S3io Tasks
+    - [assamble_parts](#assamble_parts)
     - [s3_to_ftp](#s3_to_ftp)
     - [swarm_to_ftp](#swarm_to_ftp)
     - [swarm_to_remote](#swarm_to_remote)
 
 @author: tina
 
+## assamble_parts
+
+[[find in source code]](../../s3_io/s3io_tasks.py#L114)
+
+```python
+@app.task(max_retries=3, bind=True)
+def assamble_parts(self, **body):
+```
+
 ## s3_to_ftp
 
-[[find in source code]](../../s3_io/s3io_tasks.py#L108)
+[[find in source code]](../../s3_io/s3io_tasks.py#L205)
 
 ```python
 @app.task(max_retries=3, bind=True)
@@ -30,7 +40,7 @@ Description:
 
 ## swarm_to_ftp
 
-[[find in source code]](../../s3_io/s3io_tasks.py#L33)
+[[find in source code]](../../s3_io/s3io_tasks.py#L35)
 
 ```python
 @app.task(max_retries=5, bind=True)
@@ -41,7 +51,7 @@ FTP to swarm function
 
 ## swarm_to_remote
 
-[[find in source code]](../../s3_io/s3io_tasks.py#L62)
+[[find in source code]](../../s3_io/s3io_tasks.py#L64)
 
 ```python
 @app.task(max_retries=5, bind=True)

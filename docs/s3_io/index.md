@@ -16,6 +16,5 @@ MODULE_NAME=s3_io
         - [S3io Input](s3io_input.md#s3io-input)
         - [S3io Tasks](s3io_tasks.md#s3io-tasks)
         - [S3io Tools](s3io_tools.md#s3io-tools)
-        - [S3io Worker](s3io_worker.md#s3io-worker)
         - [Scalable Worker](scalable_worker.md#scalable-worker)
         - [Task Info](task_info.md#task-info)

@@ -16,6 +16,5 @@ Full list of [S3io](README.md#s3io) project modules.
     - [S3io Input](s3_io/s3io_input.md#s3io-input)
     - [S3io Tasks](s3_io/s3io_tasks.md#s3io-tasks)
     - [S3io Tools](s3_io/s3io_tools.md#s3io-tools)
-    - [S3io Worker](s3_io/s3io_worker.md#s3io-worker)
     - [Scalable Worker](s3_io/scalable_worker.md#scalable-worker)
     - [Task Info](s3_io/task_info.md#task-info)

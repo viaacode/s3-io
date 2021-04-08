@@ -83,7 +83,7 @@ objects:
                 command: [
                   "sh",
                   "-c",
-                  "celery inspect ping -A s3_io.s3io_tasks -d s3-io-worker@$(hostname) | egrep OK && exit 0"
+                  "celery -A s3_io.s3io_tasks inspect -d =s3-io-worker@$(hostname) ping | egrep OK && exit 0"
                 ]
               initialDelaySeconds: 125
               successThreshold: 1
